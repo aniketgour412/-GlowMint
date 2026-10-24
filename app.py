@@ -37,11 +37,25 @@ logger = logging.getLogger("glowmint.app")
 # Ensure database is initialized
 database.init_db()
 
+from fastapi.exceptions import RequestValidationError
+
 app = FastAPI(
     title="GlowMint Accessories",
     description="Official storefront and management platform for GlowMint LED Lantern Jhumka Earrings",
     version="1.0.0"
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = []
+    for err in exc.errors():
+        field = str(err.get("loc", ["field"])[-1])
+        msg = err.get("msg", "Invalid value").replace("Value error, ", "")
+        errors.append(f"{field}: {msg}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": ", ".join(errors)}
+    )
 
 # -----------------------------------------------------------------------------
 # Security Headers Middleware

@@ -219,15 +219,48 @@ function openCheckoutDrawer(prefillCoupon = '') {
   const drawer = document.getElementById('checkout-drawer');
   if (!drawer) return;
 
+  const input = document.getElementById('checkout-coupon-input');
   if (prefillCoupon) {
-    const input = document.getElementById('checkout-coupon-input');
     if (input) input.value = prefillCoupon;
     state.couponCode = prefillCoupon;
+  } else if (!state.couponCode) {
+    if (input) input.value = 'FIRST50';
+    state.couponCode = 'FIRST50';
   }
+
+  updateQuantityButtonStates();
 
   drawer.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   recalculatePrice();
+}
+
+function updateQuantityButtonStates() {
+  const qtyMinus = document.getElementById('checkout-qty-minus');
+  const qtyPlus = document.getElementById('checkout-qty-plus');
+  const qtyDisplay = document.getElementById('checkout-qty-display');
+
+  if (qtyDisplay) qtyDisplay.textContent = state.quantity;
+
+  if (qtyMinus) {
+    if (state.quantity <= 1) {
+      qtyMinus.classList.add('opacity-40', 'cursor-not-allowed');
+      qtyMinus.setAttribute('disabled', 'true');
+    } else {
+      qtyMinus.classList.remove('opacity-40', 'cursor-not-allowed');
+      qtyMinus.removeAttribute('disabled');
+    }
+  }
+
+  if (qtyPlus) {
+    if (state.quantity >= 5) {
+      qtyPlus.classList.add('opacity-40', 'cursor-not-allowed');
+      qtyPlus.setAttribute('disabled', 'true');
+    } else {
+      qtyPlus.classList.remove('opacity-40', 'cursor-not-allowed');
+      qtyPlus.removeAttribute('disabled');
+    }
+  }
 }
 
 function closeCheckoutDrawer() {
@@ -241,21 +274,24 @@ function initCheckoutEvents() {
   // Quantity Controls
   const qtyMinus = document.getElementById('checkout-qty-minus');
   const qtyPlus = document.getElementById('checkout-qty-plus');
-  const qtyDisplay = document.getElementById('checkout-qty-display');
 
-  if (qtyMinus && qtyPlus && qtyDisplay) {
+  updateQuantityButtonStates();
+
+  if (qtyMinus && qtyPlus) {
     qtyMinus.addEventListener('click', () => {
       if (state.quantity > 1) {
         state.quantity--;
-        qtyDisplay.textContent = state.quantity;
+        updateQuantityButtonStates();
         recalculatePrice();
       }
     });
     qtyPlus.addEventListener('click', () => {
       if (state.quantity < 5) {
         state.quantity++;
-        qtyDisplay.textContent = state.quantity;
+        updateQuantityButtonStates();
         recalculatePrice();
+      } else {
+        if (window.showToast) window.showToast('ℹ️ Maximum 5 pairs allowed per order.');
       }
     });
   }
@@ -426,6 +462,9 @@ function updatePricingUI(pricing) {
 
   if (totalValEl) totalValEl.textContent = `₹${pricing.total_amount.toFixed(2)}`;
   if (payBtnAmountEl) payBtnAmountEl.textContent = `₹${pricing.total_amount.toFixed(2)}`;
+
+  const headerCartBadge = document.getElementById('header-cart-badge');
+  if (headerCartBadge) headerCartBadge.textContent = `₹${Math.round(pricing.total_amount)}`;
 }
 
 // -----------------------------------------------------------------------------
@@ -454,8 +493,8 @@ async function handleCheckoutSubmit(e) {
     alert('Please enter a valid 10-digit mobile number.');
     return;
   }
-  if (!email || !email.includes('@')) {
-    alert('Please enter a valid email address.');
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    alert('Please enter a valid email address (e.g. name@example.com).');
     return;
   }
   if (!address || address.length < 5) {
@@ -502,7 +541,13 @@ async function handleCheckoutSubmit(e) {
 
     const orderData = await res.json();
     if (!res.ok) {
-      alert(orderData.detail || 'Unable to create order. Please check details.');
+      let errMsg = 'Unable to create order. Please check details.';
+      if (typeof orderData.detail === 'string') {
+        errMsg = orderData.detail;
+      } else if (Array.isArray(orderData.detail)) {
+        errMsg = orderData.detail.map(d => (d.msg || '').replace('Value error, ', '')).join('\n');
+      }
+      alert(errMsg);
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnText;
       state.isSubmitting = false;
@@ -584,7 +629,8 @@ async function handleCheckoutSubmit(e) {
 function showSimulationModal(orderData, name, phone, email) {
   const modal = document.getElementById('payment-simulation-modal');
   if (!modal) {
-    alert('Order created: ' + orderData.order_id);
+    alert('Payment gateway is currently being configured. Please try again shortly.');
+    resetSubmitButton();
     return;
   }
 
@@ -640,7 +686,13 @@ async function verifyAndFinalizePayment(verifyPayload) {
     if (res.ok && data.status === 'success') {
       showOrderConfirmation(data.order_id);
     } else {
-      alert(data.detail || 'Payment verification failed on the server.');
+      let errMsg = 'Payment verification failed on the server.';
+      if (typeof data.detail === 'string') {
+        errMsg = data.detail;
+      } else if (Array.isArray(data.detail)) {
+        errMsg = data.detail.map(d => (d.msg || '').replace('Value error, ', '')).join('\n');
+      }
+      alert(errMsg);
       resetSubmitButton();
     }
   } catch (err) {

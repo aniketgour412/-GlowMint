@@ -60,8 +60,11 @@ def calculate_order_pricing(
                 # Customer history check requires phone or email
                 if req_order in (1, 2, 3):
                     if not customer_phone and not customer_email:
-                        # Informative feedback: coupon requires contact verification
-                        coupon_message = f"Please enter your phone number or email to verify eligibility for '{cleaned_code}'."
+                        if req_order == 1:
+                            coupon_valid = True
+                            coupon_message = "FIRST50 Applied! 50% discount on your first order."
+                        else:
+                            coupon_message = f"Please enter your phone number or email to verify eligibility for '{cleaned_code}'."
                     else:
                         prior_orders = get_customer_completed_orders_count(
                             customer_phone or "",
