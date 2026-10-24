@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,15 +18,24 @@ if env_file.exists():
 PORT = int(os.environ.get("PORT", 8000))
 HOST = os.environ.get("HOST", "0.0.0.0")
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
-APP_SECRET_KEY = os.environ.get("APP_SECRET_KEY", "glowmint-default-super-secure-secret-key-2026")
+
+# In production, require strong APP_SECRET_KEY
+APP_SECRET_KEY = os.environ.get("APP_SECRET_KEY")
+if not APP_SECRET_KEY:
+    if DEBUG:
+        APP_SECRET_KEY = "glowmint-dev-secret-key-do-not-use-in-production-2026"
+    else:
+        # In production mode without secret key, exit safely or warn loudly
+        logging.critical("CRITICAL SECURITY ERROR: APP_SECRET_KEY is not set in production!")
+        sys.exit(1)
 
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@glowmint.in")
-ADMIN_INITIAL_PASSWORD = os.environ.get("ADMIN_INITIAL_PASSWORD", "GlowMint@Admin2026")
+ADMIN_INITIAL_PASSWORD = os.environ.get("ADMIN_INITIAL_PASSWORD")
 ADMIN_SESSION_EXPIRE_HOURS = int(os.environ.get("ADMIN_SESSION_EXPIRE_HOURS", 24))
 
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_glowmintdemo123")
-RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "glowmint_secret_test_key_99")
-RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "glowmint_webhook_secret_88")
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
+RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
 
 STORE_NAME = os.environ.get("STORE_NAME", "GlowMint Accessories")
 STORE_CURRENCY = os.environ.get("STORE_CURRENCY", "INR")

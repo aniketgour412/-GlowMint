@@ -30,3 +30,9 @@ def setup_test_database():
             test_db_path.unlink()
         except Exception:
             pass
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiting():
+    """Reset rate limiter state before each test function to avoid cross-test throttling."""
+    from app import reset_rate_limits
+    reset_rate_limits()

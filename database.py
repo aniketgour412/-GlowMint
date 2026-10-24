@@ -1,12 +1,14 @@
 import sqlite3
 import json
+import re
+import secrets
 import logging
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Generator, Optional, Dict, Any, List
 
-from config import DB_PATH, ADMIN_EMAIL, ADMIN_INITIAL_PASSWORD, STORE_NAME, SUPPORT_EMAIL, SUPPORT_PHONE
+from config import DB_PATH, ADMIN_EMAIL, ADMIN_INITIAL_PASSWORD, STORE_NAME, SUPPORT_EMAIL, SUPPORT_PHONE, DEBUG
 from auth import hash_password
 
 logger = logging.getLogger("glowmint.database")
@@ -37,9 +39,9 @@ def init_db() -> None:
                 title TEXT NOT NULL,
                 subtitle TEXT,
                 description TEXT NOT NULL,
-                regular_price REAL NOT NULL,
-                reference_price REAL NOT NULL,
-                stock_quantity INTEGER NOT NULL DEFAULT 100,
+                regular_price REAL NOT NULL CHECK(regular_price >= 0),
+                reference_price REAL NOT NULL CHECK(reference_price >= 0),
+                stock_quantity INTEGER NOT NULL DEFAULT 100 CHECK(stock_quantity >= 0),
                 is_active INTEGER NOT NULL DEFAULT 1,
                 images TEXT NOT NULL,
                 features TEXT NOT NULL,
@@ -56,12 +58,12 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS coupons (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 code TEXT UNIQUE NOT NULL,
-                discount_percent REAL NOT NULL,
-                max_discount REAL NOT NULL,
-                min_order_val REAL NOT NULL DEFAULT 0.0,
+                discount_percent REAL NOT NULL CHECK(discount_percent >= 0 AND discount_percent <= 100),
+                max_discount REAL NOT NULL CHECK(max_discount >= 0),
+                min_order_val REAL NOT NULL DEFAULT 0.0 CHECK(min_order_val >= 0),
                 required_order_number INTEGER NOT NULL DEFAULT 0,
                 is_active INTEGER NOT NULL DEFAULT 1,
-                usage_count INTEGER NOT NULL DEFAULT 0,
+                usage_count INTEGER NOT NULL DEFAULT 0 CHECK(usage_count >= 0),
                 description TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -80,13 +82,13 @@ def init_db() -> None:
                 city TEXT NOT NULL,
                 state TEXT NOT NULL,
                 pincode TEXT NOT NULL,
-                quantity INTEGER NOT NULL,
-                unit_price REAL NOT NULL,
-                subtotal REAL NOT NULL,
-                discount_amount REAL NOT NULL DEFAULT 0.0,
+                quantity INTEGER NOT NULL CHECK(quantity > 0),
+                unit_price REAL NOT NULL CHECK(unit_price >= 0),
+                subtotal REAL NOT NULL CHECK(subtotal >= 0),
+                discount_amount REAL NOT NULL DEFAULT 0.0 CHECK(discount_amount >= 0),
                 coupon_code TEXT,
-                shipping_fee REAL NOT NULL DEFAULT 0.0,
-                total_amount REAL NOT NULL,
+                shipping_fee REAL NOT NULL DEFAULT 0.0 CHECK(shipping_fee >= 0),
+                total_amount REAL NOT NULL CHECK(total_amount >= 0),
                 payment_method TEXT NOT NULL DEFAULT 'razorpay',
                 payment_status TEXT NOT NULL DEFAULT 'pending',
                 order_status TEXT NOT NULL DEFAULT 'pending',
@@ -102,11 +104,12 @@ def init_db() -> None:
             );
         """)
 
-        # Indices for order queries
+        # Performance & query indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(customer_phone);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(customer_email);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(payment_status, order_status);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_rzp_order ON orders(razorpay_order_id);")
 
         # 4. Admin Users Table
         cursor.execute("""
@@ -131,7 +134,7 @@ def init_db() -> None:
             );
         """)
 
-        # Seed initial product if empty
+        # Seed initial product if table is empty
         cursor.execute("SELECT COUNT(*) FROM products;")
         if cursor.fetchone()[0] == 0:
             default_images = json.dumps([
@@ -151,7 +154,7 @@ def init_db() -> None:
             ])
             default_care = "Keep away from direct water, harsh perfumes, and hair sprays. Store in the complimentary airtight velvet pouch when not in use. Wipe gently with a dry microfiber cloth after wearing. Replace micro-cells via the twist-open base cap."
             default_package = "1x Pair GlowMint LED Lantern Jhumka Earrings, 1x Royal Plum Velvet Display Box, 1x Gold-Embossed Travel Pouch, 2x Extra LR41 Batteries, 1x Care & Authenticity Certificate."
-            default_led_note = "Authentic Warm Ambient Glow: Each earring features a miniature, energy-efficient micro-LED core nestled inside the filigree dome. It produces an elegant golden aura without generating heat. Batteries are pre-installed, easily replaceable, and an extra fresh pair is included in every package."
+            default_led_note = "Warm Ambient Glow: Each earring features a miniature, energy-efficient micro-LED core nestled inside the filigree dome. It produces an elegant golden aura without generating heat. Batteries are pre-installed, easily replaceable, and an extra fresh pair is included in every package."
 
             cursor.execute("""
                 INSERT INTO products (
@@ -174,29 +177,39 @@ def init_db() -> None:
                 default_led_note
             ))
 
-        # Seed initial coupons if empty
+        # Seed initial coupons if table is empty
         cursor.execute("SELECT COUNT(*) FROM coupons;")
         if cursor.fetchone()[0] == 0:
             coupons_data = [
-                ("FIRST50", 50.0, 500.0, 300.0, 1, 1, "50% OFF on your very first order at GlowMint Accessories (Max discount ₹500)"),
-                ("SECOND20", 20.0, 300.0, 300.0, 2, 1, "20% OFF on your second order at GlowMint Accessories (Max discount ₹300)"),
-                ("THIRD10", 10.0, 200.0, 300.0, 3, 1, "10% OFF on your third order at GlowMint Accessories (Max discount ₹200)")
+                ("FIRST50", 50.0, 500.0, 300.0, 1, 1, "50% OFF on your very first completed order at GlowMint Accessories (Max discount ₹500)"),
+                ("SECOND20", 20.0, 300.0, 300.0, 2, 1, "20% OFF on your second completed order at GlowMint Accessories (Max discount ₹300)"),
+                ("THIRD10", 10.0, 200.0, 300.0, 3, 1, "10% OFF on your third completed order at GlowMint Accessories (Max discount ₹200)")
             ]
             cursor.executemany("""
                 INSERT INTO coupons (code, discount_percent, max_discount, min_order_val, required_order_number, is_active, description)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, coupons_data)
 
-        # Seed initial admin user if empty
+        # Seed initial admin user if table is empty
         cursor.execute("SELECT COUNT(*) FROM admin_users;")
         if cursor.fetchone()[0] == 0:
-            pwd_hash, salt = hash_password(ADMIN_INITIAL_PASSWORD)
+            admin_pwd = ADMIN_INITIAL_PASSWORD
+            if not admin_pwd:
+                # Generate a secure random password if none was specified in env
+                admin_pwd = secrets.token_urlsafe(16)
+                logger.warning("==================================================================")
+                logger.warning(f"[SECURITY NOTICE] Initial Admin password generated: {admin_pwd}")
+                logger.warning(f"[SECURITY NOTICE] Login email: {ADMIN_EMAIL}")
+                logger.warning("Please save this password immediately or set ADMIN_INITIAL_PASSWORD in .env")
+                logger.warning("==================================================================")
+            
+            pwd_hash, salt = hash_password(admin_pwd)
             cursor.execute("""
                 INSERT INTO admin_users (username, email, password_hash, salt, role)
                 VALUES (?, ?, ?, ?, ?)
             """, ("admin", ADMIN_EMAIL, pwd_hash, salt, "admin"))
 
-        # Seed initial settings if empty
+        # Seed initial store settings if empty
         default_settings = [
             ("announcement_bar", "Grand Launch Offer: Use code FIRST50 for 50% OFF your first order! • Free Insured Delivery Across India", "Top bar announcement text"),
             ("shipping_fee", "0.0", "Flat shipping fee in INR (0 for Free shipping)"),
@@ -239,21 +252,69 @@ def get_settings() -> Dict[str, str]:
 def get_customer_completed_orders_count(phone: str, email: str) -> int:
     """
     Count completed/paid orders associated with the customer's phone or email.
-    Used for order history checks (FIRST50, SECOND20, THIRD10).
+    Safely ignores empty inputs so it never matches blank database fields.
     """
-    clean_phone = phone.strip()[-10:] if phone else ""
+    clean_phone = re.sub(r"[^\d]", "", phone)[-10:] if phone else ""
     clean_email = email.strip().lower() if email else ""
+
+    conditions = []
+    params = []
+    if clean_phone and len(clean_phone) == 10:
+        conditions.append("substr(customer_phone, -10) = ?")
+        params.append(clean_phone)
+    if clean_email and "@" in clean_email:
+        conditions.append("lower(customer_email) = ?")
+        params.append(clean_email)
+
+    if not conditions:
+        return 0
+
+    where_clause = " OR ".join(conditions)
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            SELECT COUNT(DISTINCT id) FROM orders
+            WHERE ({where_clause})
+            AND payment_status IN ('paid', 'completed')
+        """, params)
+        count = cursor.fetchone()[0]
+        return int(count)
+
+def get_customer_active_pending_order(phone: str, email: str, coupon_code: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """
+    Detect an active pending order created within the last 15 minutes.
+    Helps prevent concurrent duplicate requests from exploiting the same milestone coupon.
+    """
+    clean_phone = re.sub(r"[^\d]", "", phone)[-10:] if phone else ""
+    clean_email = email.strip().lower() if email else ""
+
+    conditions = []
+    params = []
+    if clean_phone and len(clean_phone) == 10:
+        conditions.append("substr(customer_phone, -10) = ?")
+        params.append(clean_phone)
+    if clean_email and "@" in clean_email:
+        conditions.append("lower(customer_email) = ?")
+        params.append(clean_email)
+
+    if not conditions:
+        return None
+
+    where_clause = " OR ".join(conditions)
+    coupon_clause = "AND UPPER(coupon_code) = UPPER(?)" if coupon_code else ""
+    if coupon_code:
+        params.append(coupon_code)
 
     with get_db() as conn:
         cursor = conn.cursor()
-        # Count orders that are paid or verified
-        cursor.execute("""
-            SELECT COUNT(DISTINCT id) FROM orders
-            WHERE (
-                substr(customer_phone, -10) = ?
-                OR lower(customer_email) = ?
-            )
-            AND payment_status IN ('paid', 'completed')
-        """, (clean_phone, clean_email))
-        count = cursor.fetchone()[0]
-        return int(count)
+        cursor.execute(f"""
+            SELECT * FROM orders
+            WHERE ({where_clause})
+            AND payment_status = 'pending'
+            {coupon_clause}
+            AND datetime(created_at) >= datetime('now', '-15 minutes')
+            ORDER BY created_at DESC
+            LIMIT 1;
+        """, params)
+        row = cursor.fetchone()
+        return dict(row) if row else None

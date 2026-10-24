@@ -14,11 +14,13 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, Red
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, EmailStr, field_validator
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import (
     BASE_DIR, PORT, HOST, DEBUG, APP_SECRET_KEY,
     RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET,
-    STORE_NAME, STORE_CURRENCY, SUPPORT_EMAIL, SUPPORT_PHONE
+    STORE_NAME, STORE_CURRENCY, SUPPORT_EMAIL, SUPPORT_PHONE,
+    ADMIN_SESSION_EXPIRE_HOURS
 )
 import database
 from auth import (
@@ -37,9 +39,25 @@ database.init_db()
 
 app = FastAPI(
     title="GlowMint Accessories",
-    description="Official single-product storefront for GlowMint LED Lantern Jhumka Earrings",
+    description="Official storefront and management platform for GlowMint LED Lantern Jhumka Earrings",
     version="1.0.0"
 )
+
+# -----------------------------------------------------------------------------
+# Security Headers Middleware
+# -----------------------------------------------------------------------------
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if not DEBUG:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -47,8 +65,12 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 # Templates
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-# Simple rate limiter dictionary: ip -> list of timestamps
+# Simple sliding-window rate limiter dictionary: ip -> list of timestamps
 _rate_limits: Dict[str, List[float]] = {}
+
+def reset_rate_limits():
+    """Clear in-memory rate limit logs (useful for testing and maintenance)."""
+    _rate_limits.clear()
 
 def rate_limiter(max_calls: int = 60, window_seconds: int = 60):
     def dependency(request: Request):
@@ -58,7 +80,7 @@ def rate_limiter(max_calls: int = 60, window_seconds: int = 60):
         # filter out calls older than window
         calls = [t for t in calls if now - t < window_seconds]
         if len(calls) >= max_calls:
-            raise HTTPException(status_code=429, detail="Rate limit exceeded. Please wait a moment.")
+            raise HTTPException(status_code=429, detail="Rate limit exceeded. Please wait a moment before trying again.")
         calls.append(now)
         _rate_limits[client_ip] = calls
         return True
@@ -76,13 +98,13 @@ def get_current_admin(request: Request) -> Dict[str, Any]:
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
+            detail="Authentication required to access admin functions"
         )
     payload = decode_admin_token(token)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired session"
+            detail="Invalid or expired admin session"
         )
     return payload
 
@@ -122,7 +144,7 @@ class CreateOrderRequest(BaseModel):
     def validate_pincode(cls, v: str) -> str:
         clean = re.sub(r"[^\d]", "", v)
         if len(clean) != 6:
-            raise ValueError("Please provide a valid 6-digit Indian PIN code.")
+            raise ValueError("Please provide a valid 6-digit Indian postal PIN code.")
         return clean
 
     @field_validator("customer_email")
@@ -138,6 +160,10 @@ class VerifyPaymentRequest(BaseModel):
     razorpay_order_id: str
     razorpay_payment_id: str
     razorpay_signature: str
+
+class RecordPaymentFailureRequest(BaseModel):
+    order_id: str
+    reason: Optional[str] = "Customer cancelled or closed checkout modal"
 
 class AdminLoginRequest(BaseModel):
     email: str
@@ -194,7 +220,8 @@ async def landing_page(request: Request):
             "settings": settings,
             "store_name": STORE_NAME,
             "razorpay_key_id": RAZORPAY_KEY_ID,
-            "is_razorpay_live": is_real_razorpay_configured()
+            "is_razorpay_live": is_real_razorpay_configured(),
+            "debug_mode": DEBUG
         }
     )
 
@@ -223,6 +250,24 @@ async def admin_dashboard_page(request: Request):
 # -----------------------------------------------------------------------------
 # Public API Endpoints
 # -----------------------------------------------------------------------------
+@app.get("/api/health")
+async def health_check():
+    """System health check and diagnostic status."""
+    try:
+        with database.get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1;")
+            db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    return {
+        "status": "healthy" if db_status == "connected" else "degraded",
+        "database": db_status,
+        "razorpay_configured": is_real_razorpay_configured(),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 @app.get("/api/product")
 async def get_product_api():
     product = database.get_product()
@@ -250,7 +295,8 @@ async def calculate_price_api(req: PriceCheckRequest):
             quantity=req.quantity,
             coupon_code=req.coupon_code,
             customer_phone=req.customer_phone,
-            customer_email=req.customer_email
+            customer_email=req.customer_email,
+            check_concurrent_pending=False
         )
         return pricing
     except ValueError as e:
@@ -288,13 +334,14 @@ async def create_order_api(req: CreateOrderRequest):
                     "reused_order": True
                 }
 
-    # Authoritative server-side price calculation
+    # Authoritative server-side price calculation with concurrency check
     try:
         pricing = calculate_order_pricing(
             quantity=req.quantity,
             coupon_code=req.coupon_code,
             customer_phone=req.customer_phone,
-            customer_email=req.customer_email
+            customer_email=req.customer_email,
+            check_concurrent_pending=True
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -316,7 +363,13 @@ async def create_order_api(req: CreateOrderRequest):
             unique_order_id = f"GM-2026-{secrets.randbelow(9000) + 1000}"
 
     # Create Razorpay order
-    rzp_info = create_razorpay_order(unique_order_id, pricing["total_amount"])
+    try:
+        rzp_info = create_razorpay_order(unique_order_id, pricing["total_amount"])
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error creating payment gateway order: {e}")
+        raise HTTPException(status_code=500, detail="Unable to initiate payment transaction.")
 
     # Persist pending order
     with database.get_db() as conn:
@@ -368,7 +421,7 @@ async def create_order_api(req: CreateOrderRequest):
         "pricing": pricing
     }
 
-@app.post("/api/verify-payment")
+@app.post("/api/verify-payment", dependencies=[Depends(rate_limiter(max_calls=30, window_seconds=60))])
 async def verify_payment_api(req: VerifyPaymentRequest):
     # Verify signature
     is_valid = verify_payment_signature(
@@ -399,7 +452,7 @@ async def verify_payment_api(req: VerifyPaymentRequest):
                 "total_amount": order["total_amount"]
             }
 
-        # Update order status to paid & processing
+        # Atomic transition to paid
         cursor.execute("""
             UPDATE orders
             SET payment_status = 'paid',
@@ -407,23 +460,24 @@ async def verify_payment_api(req: VerifyPaymentRequest):
                 razorpay_payment_id = ?,
                 razorpay_signature = ?,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
+            WHERE id = ? AND payment_status != 'paid'
         """, (req.razorpay_payment_id, req.razorpay_signature, req.order_id))
 
-        # Decrement product stock safely
-        cursor.execute("""
-            UPDATE products
-            SET stock_quantity = MAX(0, stock_quantity - ?)
-            WHERE id = 1
-        """, (order["quantity"],))
-
-        # Increment coupon usage count if used
-        if order["coupon_code"]:
+        if cursor.rowcount == 1:
+            # Decrement product stock safely
             cursor.execute("""
-                UPDATE coupons
-                SET usage_count = usage_count + 1
-                WHERE UPPER(code) = UPPER(?)
-            """, (order["coupon_code"],))
+                UPDATE products
+                SET stock_quantity = MAX(0, stock_quantity - ?)
+                WHERE id = 1
+            """, (order["quantity"],))
+
+            # Increment coupon usage count if used
+            if order["coupon_code"]:
+                cursor.execute("""
+                    UPDATE coupons
+                    SET usage_count = usage_count + 1
+                    WHERE UPPER(code) = UPPER(?)
+                """, (order["coupon_code"],))
 
     return {
         "status": "success",
@@ -431,6 +485,20 @@ async def verify_payment_api(req: VerifyPaymentRequest):
         "order_id": req.order_id,
         "payment_id": req.razorpay_payment_id
     }
+
+@app.post("/api/record-payment-failure")
+async def record_payment_failure_api(req: RecordPaymentFailureRequest):
+    """Record customer payment dismissal or failure."""
+    with database.get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE orders
+            SET payment_status = 'failed',
+                notes = COALESCE(notes, '') || ' [Customer payment failed or cancelled: ' || ? || ']',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND payment_status = 'pending'
+        """, (req.reason, req.order_id))
+    return {"status": "recorded"}
 
 @app.post("/api/razorpay-webhook")
 async def razorpay_webhook_api(request: Request, x_razorpay_signature: Optional[str] = Header(None)):
@@ -462,21 +530,37 @@ async def razorpay_webhook_api(request: Request, x_razorpay_signature: Optional[
                                 order_status = 'processing',
                                 razorpay_payment_id = ?,
                                 updated_at = CURRENT_TIMESTAMP
-                            WHERE id = ?
+                            WHERE id = ? AND payment_status != 'paid'
                         """, (razorpay_payment_id, order["id"]))
 
-                        cursor.execute("""
-                            UPDATE products
-                            SET stock_quantity = MAX(0, stock_quantity - ?)
-                            WHERE id = 1
-                        """, (order["quantity"],))
-
-                        if order["coupon_code"]:
+                        if cursor.rowcount == 1:
                             cursor.execute("""
-                                UPDATE coupons
-                                SET usage_count = usage_count + 1
-                                WHERE UPPER(code) = UPPER(?)
-                            """, (order["coupon_code"],))
+                                UPDATE products
+                                SET stock_quantity = MAX(0, stock_quantity - ?)
+                                WHERE id = 1
+                            """, (order["quantity"],))
+
+                            if order["coupon_code"]:
+                                cursor.execute("""
+                                    UPDATE coupons
+                                    SET usage_count = usage_count + 1
+                                    WHERE UPPER(code) = UPPER(?)
+                                """, (order["coupon_code"],))
+
+        elif event_name == "payment.failed":
+            payload_payment = event.get("payload", {}).get("payment", {}).get("entity", {})
+            razorpay_order_id = payload_payment.get("order_id")
+            error_desc = payload_payment.get("error_description", "Payment failed")
+            if razorpay_order_id:
+                with database.get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE orders
+                        SET payment_status = 'failed',
+                            notes = COALESCE(notes, '') || ' [Razorpay webhook reported failure: ' || ? || ']',
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE razorpay_order_id = ? AND payment_status = 'pending'
+                    """, (error_desc, razorpay_order_id))
 
         return {"status": "ok"}
     except Exception as e:
@@ -501,7 +585,7 @@ async def get_order_status_api(order_id: str):
 # -----------------------------------------------------------------------------
 # Admin Protected API Endpoints
 # -----------------------------------------------------------------------------
-@app.post("/api/admin/login")
+@app.post("/api/admin/login", dependencies=[Depends(rate_limiter(max_calls=5, window_seconds=60))])
 async def admin_login_api(req: AdminLoginRequest, response: Response):
     with database.get_db() as conn:
         cursor = conn.cursor()
@@ -511,12 +595,13 @@ async def admin_login_api(req: AdminLoginRequest, response: Response):
             raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
         token = create_admin_token(user["id"], user["username"], user["email"])
+        max_age_seconds = ADMIN_SESSION_EXPIRE_HOURS * 3600
         response.set_cookie(
             key="glowmint_admin_token",
             value=token,
             httponly=True,
             samesite="lax",
-            max_age=86400 * 7,
+            max_age=max_age_seconds,
             secure=not DEBUG
         )
         return {
@@ -787,7 +872,6 @@ async def admin_create_coupon(req: CouponCreateRequest, admin: Dict[str, Any] = 
 @app.get("/api/admin/settings")
 async def admin_get_settings(admin: Dict[str, Any] = Depends(get_current_admin)):
     settings = database.get_settings()
-    # Add Razorpay status check
     settings["razorpay_configured"] = "true" if is_real_razorpay_configured() else "false"
     settings["razorpay_key_preview"] = (RAZORPAY_KEY_ID[:8] + "...") if RAZORPAY_KEY_ID else "Not Set"
     return settings

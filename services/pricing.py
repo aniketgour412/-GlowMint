@@ -1,6 +1,9 @@
 import logging
 from typing import Optional, Dict, Any, Tuple
-from database import get_db, get_product, get_settings, get_customer_completed_orders_count
+from database import (
+    get_db, get_product, get_settings,
+    get_customer_completed_orders_count, get_customer_active_pending_order
+)
 
 logger = logging.getLogger("glowmint.pricing")
 
@@ -8,11 +11,12 @@ def calculate_order_pricing(
     quantity: int,
     coupon_code: Optional[str] = None,
     customer_phone: Optional[str] = None,
-    customer_email: Optional[str] = None
+    customer_email: Optional[str] = None,
+    check_concurrent_pending: bool = False
 ) -> Dict[str, Any]:
     """
     Server-side authoritative pricing and coupon calculation.
-    Enforces coupon eligibility, caps, min order value, and shipping rules.
+    Enforces coupon eligibility, caps, min order value, order history, and shipping rules.
     """
     product = get_product()
     if not product:
@@ -63,21 +67,33 @@ def calculate_order_pricing(
                             customer_phone or "",
                             customer_email or ""
                         )
+
+                        # Concurrency check if placing an order
+                        if check_concurrent_pending and req_order == 1:
+                            active_pending = get_customer_active_pending_order(
+                                customer_phone or "",
+                                customer_email or "",
+                                coupon_code=cleaned_code
+                            )
+                            if active_pending:
+                                coupon_message = f"An active checkout session ({active_pending['id']}) already exists for this number. Please complete or wait a few minutes."
+                                prior_orders = 999  # Flag to block duplicate simultaneous coupon usage
+
                         if req_order == 1:
                             if prior_orders == 0:
                                 coupon_valid = True
-                            else:
-                                coupon_message = f"FIRST50 is reserved exclusively for first-time customers. We found {prior_orders} previous order(s) for this account."
+                            elif coupon_message is None:
+                                coupon_message = f"FIRST50 is reserved exclusively for first-time customers. We found {prior_orders} previous completed order(s) for this account."
                         elif req_order == 2:
                             if prior_orders == 1:
                                 coupon_valid = True
                             else:
-                                coupon_message = f"SECOND20 is valid exclusively on your 2nd order (current verified completed orders: {prior_orders})."
+                                coupon_message = f"SECOND20 is valid exclusively on your 2nd completed order (current completed orders: {prior_orders})."
                         elif req_order == 3:
                             if prior_orders == 2:
                                 coupon_valid = True
                             else:
-                                coupon_message = f"THIRD10 is valid exclusively on your 3rd order (current verified completed orders: {prior_orders})."
+                                coupon_message = f"THIRD10 is valid exclusively on your 3rd completed order (current completed orders: {prior_orders})."
                 else:
                     coupon_valid = True
 

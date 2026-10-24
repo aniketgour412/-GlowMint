@@ -172,13 +172,20 @@ function initCheckoutEvents() {
     });
   }
 
-  // Coupon Apply Button
+  // Coupon Apply Button & Enter Key
   const btnApplyCoupon = document.getElementById('btn-apply-coupon');
   const couponInput = document.getElementById('checkout-coupon-input');
   if (btnApplyCoupon && couponInput) {
     btnApplyCoupon.addEventListener('click', () => {
       state.couponCode = couponInput.value.trim().toUpperCase();
       recalculatePrice(true);
+    });
+    couponInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        state.couponCode = couponInput.value.trim().toUpperCase();
+        recalculatePrice(true);
+      }
     });
   }
 
@@ -442,6 +449,11 @@ async function handleCheckoutSubmit(e) {
         },
         modal: {
           ondismiss: function () {
+            fetch('/api/record-payment-failure', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ order_id: orderData.order_id, reason: 'Customer closed payment window' })
+            }).catch(() => {});
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
             state.isSubmitting = false;
@@ -451,7 +463,15 @@ async function handleCheckoutSubmit(e) {
 
       const rzp = new Razorpay(options);
       rzp.on('payment.failed', function (response) {
-        alert('Payment could not be completed: ' + (response.error.description || 'Unknown reason'));
+        fetch('/api/record-payment-failure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: orderData.order_id,
+            reason: response.error?.description || 'Payment gateway failed'
+          })
+        }).catch(() => {});
+        alert('Payment could not be completed: ' + (response.error?.description || 'Unknown reason'));
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
         state.isSubmitting = false;

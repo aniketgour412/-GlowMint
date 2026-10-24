@@ -450,3 +450,178 @@ def test_admin_update_product_and_settings():
         "package_contents": p_orig["package_contents"],
         "led_note": p_orig["led_note"]
     }, headers=headers)
+
+def test_system_health_endpoint():
+    """Verify system health check endpoint reports status and database connectivity."""
+    res = client.get("/api/health")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] in ("healthy", "degraded")
+    assert data["database"] == "connected"
+    assert "timestamp" in data
+
+def test_record_payment_failure_endpoint():
+    """Verify customer payment cancellation or dismissal updates the order status."""
+    res_order = client.post("/api/create-order", json={
+        "customer_name": "Kavita Rao",
+        "customer_phone": "9988776655",
+        "customer_email": "kavita@example.com",
+        "address_line": "505 Silver Heights",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "pincode": "411001",
+        "quantity": 1,
+        "payment_method": "razorpay"
+    })
+    order_id = res_order.json()["order_id"]
+
+    res_fail = client.post("/api/record-payment-failure", json={
+        "order_id": order_id,
+        "reason": "Payment window closed by user"
+    })
+    assert res_fail.status_code == 200
+
+    # Verify status in DB
+    with database.get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT payment_status, notes FROM orders WHERE id = ?", (order_id,))
+        row = cursor.fetchone()
+        assert row["payment_status"] == "failed"
+        assert "Payment window closed by user" in row["notes"]
+
+def test_webhook_payment_failed_event():
+    """Verify Razorpay webhook payment.failed event marks the pending order as failed."""
+    res_order = client.post("/api/create-order", json={
+        "customer_name": "Suresh Nair",
+        "customer_phone": "9845012345",
+        "customer_email": "suresh@example.com",
+        "address_line": "12 Marine Drive",
+        "city": "Kochi",
+        "state": "Kerala",
+        "pincode": "682001",
+        "quantity": 1,
+        "payment_method": "razorpay"
+    })
+    order_data = res_order.json()
+    rzp_order_id = order_data["razorpay_order_id"]
+    order_id = order_data["order_id"]
+
+    webhook_body = json.dumps({
+        "event": "payment.failed",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": "pay_fail_test_777",
+                    "order_id": rzp_order_id,
+                    "error_description": "Insufficient bank account balance"
+                }
+            }
+        }
+    }).encode("utf-8")
+
+    sig = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode("utf-8"), webhook_body, hashlib.sha256).hexdigest()
+
+    res = client.post("/api/razorpay-webhook", content=webhook_body, headers={"X-Razorpay-Signature": sig})
+    assert res.status_code == 200
+
+    with database.get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT payment_status, notes FROM orders WHERE id = ?", (order_id,))
+        row = cursor.fetchone()
+        assert row["payment_status"] == "failed"
+        assert "Insufficient bank account balance" in row["notes"]
+
+def test_webhook_idempotency_does_not_double_decrement_stock():
+    """Duplicate webhook deliveries must not decrement stock or increment coupon usage twice."""
+    res_order = client.post("/api/create-order", json={
+        "customer_name": "Divya Menon",
+        "customer_phone": "9871100223",
+        "customer_email": "divya@example.com",
+        "address_line": "Flat 2B, Green Woods",
+        "city": "Hyderabad",
+        "state": "Telangana",
+        "pincode": "500001",
+        "quantity": 1,
+        "coupon_code": "FIRST50",
+        "payment_method": "razorpay"
+    })
+    order_data = res_order.json()
+    rzp_order_id = order_data["razorpay_order_id"]
+    order_id = order_data["order_id"]
+
+    # Initial coupon usage
+    with database.get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT usage_count FROM coupons WHERE code = 'FIRST50';")
+        coupon_usage_before = cursor.fetchone()[0]
+
+    p_before = database.get_product()
+    stock_before = p_before["stock_quantity"]
+
+    webhook_body = json.dumps({
+        "event": "payment.captured",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": "pay_idemp_test_888",
+                    "order_id": rzp_order_id,
+                    "amount": 30000,
+                    "status": "captured"
+                }
+            }
+        }
+    }).encode("utf-8")
+
+    sig = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode("utf-8"), webhook_body, hashlib.sha256).hexdigest()
+
+    # Delivery 1
+    res1 = client.post("/api/razorpay-webhook", content=webhook_body, headers={"X-Razorpay-Signature": sig})
+    assert res1.status_code == 200
+
+    # Delivery 2 (Duplicate)
+    res2 = client.post("/api/razorpay-webhook", content=webhook_body, headers={"X-Razorpay-Signature": sig})
+    assert res2.status_code == 200
+
+    # Stock must have decremented ONLY once
+    p_after = database.get_product()
+    assert p_after["stock_quantity"] == stock_before - 1
+
+    # Coupon usage must have incremented ONLY once
+    with database.get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT usage_count FROM coupons WHERE code = 'FIRST50';")
+        coupon_usage_after = cursor.fetchone()[0]
+    assert coupon_usage_after == coupon_usage_before + 1
+
+def test_database_backup_and_restore_scripts(tmp_path):
+    """Verify that backup and restore scripts work without corrupting data."""
+    from scripts.backup_db import run_backup
+    from scripts.restore_db import run_restore
+
+    backup_file = tmp_path / "test_snapshot.sqlite3"
+    target = run_backup(backup_file)
+    assert target.exists()
+    assert target.stat().st_size > 0
+
+    # Test restore
+    run_restore(target)
+    # Re-verify product table accessible after restore
+    p = database.get_product()
+    assert p is not None
+    assert p["regular_price"] == 600.0
+
+def test_admin_login_rate_limiting():
+    """Verify that rapid failed login attempts hit HTTP 429 Too Many Requests."""
+    statuses = []
+    for _ in range(6):
+        res = client.post("/api/admin/login", json={
+            "email": "admin@glowmint.in",
+            "password": "WrongPasswordAttempt"
+        })
+        statuses.append(res.status_code)
+
+    # First 5 attempts return 401 Unauthorized, 6th attempt returns 429 Too Many Requests
+    assert 401 in statuses[:5]
+    assert statuses[-1] == 429
+
+

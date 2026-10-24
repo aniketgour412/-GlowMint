@@ -5,6 +5,8 @@ __pycache__/
 .pytest_cache/
 *.db
 *.sqlite3
+*.bak
+backups/
 .env
 .DS_Store
 node_modules/

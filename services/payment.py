@@ -5,7 +5,7 @@ import secrets
 import logging
 from typing import Dict, Any, Tuple, Optional
 import requests
-from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
+from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, DEBUG
 
 logger = logging.getLogger("glowmint.payment")
 
@@ -23,8 +23,9 @@ def is_real_razorpay_configured() -> bool:
 
 def create_razorpay_order(order_id: str, amount_inr: float) -> Dict[str, Any]:
     """
-    Create an order via Razorpay API or generate integration-ready simulation.
-    Amount in Razorpay is in paise (1 INR = 100 paise).
+    Create an order via Razorpay API.
+    In production: strictly uses real Razorpay API or raises setup requirement.
+    In debug/test: allows integration-ready simulation for QA.
     """
     amount_paise = int(round(amount_inr * 100))
 
@@ -58,10 +59,21 @@ def create_razorpay_order(order_id: str, amount_inr: float) -> Dict[str, Any]:
                 }
             else:
                 logger.error(f"Razorpay API error {resp.status_code}: {resp.text}")
+                if not DEBUG:
+                    raise RuntimeError(f"Razorpay order creation failed: {resp.status_code}")
         except Exception as e:
             logger.error(f"Razorpay connection failed: {e}")
+            if not DEBUG:
+                raise RuntimeError(f"Unable to contact Razorpay gateway: {e}")
 
-    # Fallback to Integration-Ready Simulation Mode
+    # If in production and real credentials are not valid:
+    if not DEBUG:
+        raise ValueError(
+            "Razorpay payment gateway is not configured for production. "
+            "Please provide valid RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env."
+        )
+
+    # In Debug / Testing mode only: return clearly labelled simulation
     simulated_order_id = f"order_sim_{secrets.token_hex(8)}"
     return {
         "razorpay_order_id": simulated_order_id,
@@ -69,7 +81,7 @@ def create_razorpay_order(order_id: str, amount_inr: float) -> Dict[str, Any]:
         "currency": "INR",
         "key_id": RAZORPAY_KEY_ID or "rzp_test_simulation",
         "mode": "simulation",
-        "note": "Integration-ready simulation mode active. Set live RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET in .env for production gateway."
+        "note": "Test / Simulation Mode Active. Provide live RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET in .env for production gateway."
     }
 
 def verify_payment_signature(
@@ -79,20 +91,20 @@ def verify_payment_signature(
 ) -> bool:
     """
     Verify payment signature using HMAC-SHA256 according to official Razorpay specifications.
+    Simulated signatures are strictly rejected in production (when DEBUG=False).
     """
     if not razorpay_order_id or not razorpay_payment_id or not razorpay_signature:
         return False
 
-    # Check against configured Razorpay secret
-    secret = RAZORPAY_KEY_SECRET or "glowmint_secret_test_key_99"
-    message = f"{razorpay_order_id}|{razorpay_payment_id}".encode("utf-8")
-    expected_sig = hmac.new(secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    secret = RAZORPAY_KEY_SECRET or ""
+    if secret:
+        message = f"{razorpay_order_id}|{razorpay_payment_id}".encode("utf-8")
+        expected_sig = hmac.new(secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
+        if secrets.compare_digest(expected_sig, razorpay_signature):
+            return True
 
-    if secrets.compare_digest(expected_sig, razorpay_signature):
-        return True
-
-    # In simulation mode, accept simulated signature format: sim_sig_<order_id_suffix>
-    if razorpay_order_id.startswith("order_sim_") and razorpay_signature.startswith("sim_sig_"):
+    # In Debug/Testing mode only, accept simulation signatures
+    if DEBUG and razorpay_order_id.startswith("order_sim_") and razorpay_signature.startswith("sim_sig_"):
         return True
 
     return False
