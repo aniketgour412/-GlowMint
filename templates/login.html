@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Staff Portal — {{ store_name }}</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/glowmint.css">
+</head>
+<body class="bg-ivory-50 text-[#221518] min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-ivory-200 overflow-hidden">
+    <!-- Header -->
+    <div class="plum-gradient-bg p-6 text-center text-white border-b border-gold-700/40">
+      <div class="w-12 h-12 rounded-full bg-gold-500/20 border border-gold-500 mx-auto flex items-center justify-center mb-3">
+        <svg class="w-6 h-6 text-gold-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <h2 class="font-serif text-2xl font-bold text-gold-100">GlowMint Portal</h2>
+      <p class="text-xs text-gray-300 mt-1">Authorized Staff & Merchant Administration</p>
+    </div>
+
+    <!-- Login Form -->
+    <form id="admin-login-form" class="p-6 space-y-4">
+      <div id="login-error-alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-medium"></div>
+
+      <div>
+        <label for="admin-email" class="block text-xs font-bold text-gray-700 mb-1">Administrator Email</label>
+        <input type="email" id="admin-email" required placeholder="admin@glowmint.in" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+      </div>
+
+      <div>
+        <label for="admin-password" class="block text-xs font-bold text-gray-700 mb-1">Password</label>
+        <input type="password" id="admin-password" required placeholder="••••••••••••" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+      </div>
+
+      <button type="submit" id="btn-login" class="w-full btn-gold py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider shadow">
+        Sign In to Admin
+      </button>
+
+      <div class="text-center pt-2">
+        <a href="/" class="text-xs text-gray-500 hover:text-plum-800 underline">← Return to Public Storefront</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value;
+      const errorAlert = document.getElementById('login-error-alert');
+      const submitBtn = document.getElementById('btn-login');
+
+      errorAlert.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.href = '/admin';
+        } else {
+          errorAlert.textContent = data.detail || 'Invalid login credentials.';
+          errorAlert.classList.remove('hidden');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In to Admin';
+        }
+      } catch (err) {
+        errorAlert.textContent = 'Network communication error. Please retry.';
+        errorAlert.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In to Admin';
+      }
+    });
+  </script>
+</body>
+</html>

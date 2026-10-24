@@ -1,0 +1,130 @@
+/* ==========================================================================
+   GlowMint Accessories — Luxury Indian Festive Design System
+   Color Palette: Deep Royal Plum (#2A0815, #3B0D1E, #4E1428),
+                  Champagne Gold (#D4AF37, #E5C365, #F5E8C7),
+                  Warm White / Ivory (#FCFAF7, #F8F4EE)
+   ========================================================================== */
+
+:root {
+  --color-plum-900: #1D050E;
+  --color-plum-800: #2D0A16;
+  --color-plum-700: #3E0F20;
+  --color-plum-600: #55162D;
+  --color-gold-900: #8C6F1E;
+  --color-gold-700: #B89328;
+  --color-gold-500: #D4AF37;
+  --color-gold-300: #E6C86E;
+  --color-gold-100: #F7EECD;
+  --color-warm-white: #FCFAF7;
+  --color-warm-ivory: #F8F4EE;
+  --color-warm-sand: #EDE5D8;
+  --color-text-dark: #221518;
+  --color-text-muted: #6B5B60;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-warm-white);
+  color: var(--color-text-dark);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Gold Gradient Accents */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E8C7 50%, #B89328 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #D4AF37 0%, #E8CA72 50%, #B89328 100%);
+}
+
+.gold-gradient-border {
+  border-image: linear-gradient(135deg, #D4AF37, #F5E8C7, #B89328) 1;
+}
+
+.plum-gradient-bg {
+  background: linear-gradient(145deg, #2D0A16 0%, #3E0F20 60%, #1D050E 100%);
+}
+
+/* Subtle luxury button styles */
+.btn-gold {
+  background: linear-gradient(135deg, #D4AF37 0%, #E2C263 100%);
+  color: #1D050E;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #DFBE4B 0%, #EDD17C 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+}
+
+.btn-gold:active {
+  transform: translateY(0);
+}
+
+.btn-plum {
+  background-color: var(--color-plum-800);
+  color: #F8F4EE;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-plum:hover {
+  background-color: var(--color-plum-700);
+  color: #FFF;
+}
+
+/* Micro-LED ambient pulse effect */
+@keyframes warm-lantern-glow {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.55), inset 0 0 25px rgba(212, 175, 55, 0.35);
+  }
+}
+
+.lantern-glow-card {
+  animation: warm-lantern-glow 4s ease-in-out infinite;
+}
+
+/* Smooth modal transitions */
+.modal-backdrop {
+  background-color: rgba(29, 5, 14, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F8F4EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B89328;
+}

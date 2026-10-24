@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ product.title }} — {{ store_name }}</title>
+  <meta name="description" content="Handcrafted traditional Indian LED Lantern Jhumka Earrings with warm ambient illumination. Hand-finished gold filigree, seed pearls, and festive luxury.">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            plum: {
+              900: '#1D050E',
+              800: '#2D0A16',
+              700: '#3E0F20',
+              600: '#55162D',
+              50: '#FBF5F7'
+            },
+            gold: {
+              900: '#8C6F1E',
+              700: '#B89328',
+              500: '#D4AF37',
+              300: '#E6C86E',
+              100: '#F7EECD',
+              50: '#FCF9F0'
+            },
+            ivory: {
+              50: '#FCFAF7',
+              100: '#F8F4EE',
+              200: '#EDE5D8'
+            }
+          },
+          fontFamily: {
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+            sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/glowmint.css">
+
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="bg-ivory-50 text-[#221518] antialiased selection:bg-gold-500 selection:text-plum-900">
+
+  <!-- =========================================================================
+       1. ANNOUNCEMENT BAR
+       ========================================================================= -->
+  <section id="announcement-bar" class="plum-gradient-bg text-gold-100 text-xs py-2.5 px-4 text-center font-medium tracking-wide border-b border-gold-700/30">
+    <div class="max-w-6xl mx-auto flex items-center justify-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-gold-500 animate-pulse"></span>
+      <span>{{ settings.announcement_bar | default("Grand Launch Offer: Use code FIRST50 for 50% OFF your first order! • Free Insured Delivery Across India") }}</span>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       2. HEADER
+       ========================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-ivory-200 shadow-sm transition-all">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <!-- Brand Logo / Wordmark -->
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-full plum-gradient-bg flex items-center justify-center border border-gold-500 shadow-sm group-hover:scale-105 transition-transform">
+          <svg class="w-5 h-5 text-gold-300" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L9.5 8.5L3 9.5L7.8 14.2L6.5 21L12 17.5L17.5 21L16.2 14.2L21 9.5L14.5 8.5L12 2Z"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-plum-900 block leading-tight">GlowMint</span>
+          <span class="text-[10px] tracking-[0.25em] text-gold-700 font-semibold uppercase block">Accessories</span>
+        </div>
+      </a>
+
+      <!-- Minimal Navigation -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
+        <a href="#hero" class="hover:text-plum-800 transition-colors">Overview</a>
+        <a href="#gallery" class="hover:text-plum-800 transition-colors">Gallery</a>
+        <a href="#offers" class="hover:text-plum-800 transition-colors">Coupons & Offers</a>
+        <a href="#details" class="hover:text-plum-800 transition-colors">Product Details</a>
+        <a href="#trust" class="hover:text-plum-800 transition-colors">Trust & Delivery</a>
+        <a href="#faq" class="hover:text-plum-800 transition-colors">FAQs</a>
+      </nav>
+
+      <!-- Cart / Quick Action Icon -->
+      <div class="flex items-center gap-3">
+        <button onclick="openCheckoutDrawer()" class="relative p-2.5 rounded-full hover:bg-ivory-100 text-plum-900 transition-colors border border-ivory-200 flex items-center gap-2" title="View Order Summary">
+          <svg class="w-5 h-5 text-plum-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <span class="text-xs font-bold text-plum-900 hidden sm:inline">Checkout</span>
+          <span class="w-2 h-2 rounded-full bg-gold-500"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       3. HERO SECTION
+       ========================================================================= -->
+  <section id="hero" class="py-8 md:py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <!-- Hero Product Media Showcase -->
+      <div class="lg:col-span-7">
+        <div class="relative rounded-2xl overflow-hidden bg-plum-900 border-2 border-gold-500/40 shadow-2xl lantern-glow-card group">
+          <img src="/static/images/hero.jpg" alt="GlowMint LED Lantern Jhumka Earrings" class="w-full h-auto object-cover max-h-[540px] transform group-hover:scale-102 transition-transform duration-700">
+          
+          <div class="absolute top-4 left-4 bg-plum-900/90 backdrop-blur-md border border-gold-500/60 rounded-full px-3.5 py-1 flex items-center gap-2 shadow-lg">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-[11px] font-semibold text-gold-100 tracking-wider uppercase">Authentic Launch Edition</span>
+          </div>
+
+          <div class="absolute bottom-4 right-4 bg-plum-900/90 backdrop-blur-md border border-gold-500/60 rounded-xl px-4 py-2 text-right shadow-lg">
+            <span class="text-[10px] text-gray-300 block uppercase tracking-wider">Regular Price</span>
+            <span class="text-base font-bold text-gold-300">₹{{ "%.0f"|format(product.regular_price) }}</span>
+            <span class="text-[11px] text-emerald-400 block font-medium">₹300 with FIRST50</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Product Information & Primary CTA -->
+      <div class="lg:col-span-5 flex flex-col justify-center">
+        <div class="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-gold-700 uppercase mb-3">
+          <span class="h-px w-6 bg-gold-500"></span>
+          <span>Festive Luxury Collection</span>
+        </div>
+
+        <h1 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-plum-900 leading-tight mb-4">
+          LED Lantern Jhumka Earrings
+        </h1>
+
+        <p class="text-gray-700 text-sm sm:text-base leading-relaxed mb-6">
+          Traditional Indian filigree dome silhouette reimagined with a luminous warm micro-LED lantern core. Handcrafted in antique gold-toned hypoallergenic brass alloy with dangling seed pearls and ruby bead accents.
+        </p>
+
+        <!-- Pricing Breakdown Card -->
+        <div class="bg-ivory-100 rounded-xl p-4 sm:p-5 border border-ivory-200 mb-6">
+          <div class="flex items-baseline justify-between mb-2">
+            <div>
+              <span class="text-xs text-gray-600 block uppercase tracking-wider">Launch Pricing</span>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-serif font-bold text-plum-900">₹{{ "%.0f"|format(product.regular_price) }}</span>
+                <span class="text-xs text-gray-500">Regular Price</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-300">
+                50% OFF Available
+              </span>
+              <span class="text-[11px] text-gray-600 block mt-1">Apply code <strong class="text-plum-900">FIRST50</strong></span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-ivory-200 flex items-center justify-between text-xs text-gray-700">
+            <span>Payable with FIRST50 coupon:</span>
+            <span class="font-bold text-base text-plum-900 font-serif">₹300.00</span>
+          </div>
+        </div>
+
+        <!-- Primary CTA Button -->
+        <button onclick="openCheckoutDrawer('FIRST50')" class="w-full btn-gold py-4 px-6 rounded-xl font-serif text-base tracking-wide flex items-center justify-center gap-3 uppercase shadow-lg group">
+          <span>SHOP NOW — APPLY FIRST50</span>
+          <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+
+        <!-- Trust Microcopy -->
+        <div class="mt-5 grid grid-cols-2 gap-3 text-xs text-gray-600">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <span>256-Bit Encrypted Razorpay</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Free Insured Dispatch</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>7-Day Transit Replacement</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Prepaid Orders Only</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       4. PRODUCT GALLERY
+       ========================================================================= -->
+  <section id="gallery" class="py-12 bg-white border-y border-ivory-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-2xl mx-auto mb-8">
+        <span class="text-xs font-bold tracking-widest text-gold-700 uppercase">Authentic Showcase</span>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-plum-900 mt-1">Product Gallery & Views</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-2">
+          Explore close-up filigree craftsmanship, warm ambient micro-LED glow, gift box packaging, and festive drape.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Main Interactive Viewport -->
+        <div class="lg:col-span-8">
+          <div class="relative bg-plum-900 rounded-2xl overflow-hidden border border-gold-500/30 aspect-square max-h-[560px] flex items-center justify-center">
+            <img id="gallery-main-image" src="/static/images/hero.jpg" alt="Product view" class="w-full h-full object-cover transition-opacity duration-300">
+            
+            <!-- Video Slot Overlay Trigger -->
+            <button id="btn-play-video-demo" class="absolute bottom-4 left-4 bg-plum-900/90 hover:bg-plum-800 text-gold-100 text-xs font-semibold px-4 py-2 rounded-xl border border-gold-500/50 shadow-lg flex items-center gap-2 transition-all">
+              <svg class="w-4 h-4 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              <span>Watch Illumination Demo</span>
+            </button>
+
+            <!-- Transparency Disclaimer Badge -->
+            <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-[10px] text-gray-300 px-3 py-1 rounded-full border border-white/10">
+              High-Precision 3D Jewelry Render
+            </div>
+          </div>
+
+          <!-- Dynamic Caption -->
+          <div class="mt-4 p-4 bg-ivory-100 rounded-xl border border-ivory-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 id="gallery-caption-title" class="font-serif font-bold text-sm text-plum-900">Luxury Plum Presentation</h4>
+              <p id="gallery-caption-desc" class="text-xs text-gray-600 mt-0.5">Handcrafted antique gold filigree with illuminated warm LED core</p>
+            </div>
+            <span class="text-[11px] text-gray-500 font-medium">Swipe or tap thumbnails below</span>
+          </div>
+        </div>
+
+        <!-- Thumbnails Navigation & Specs Snapshot -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <h3 class="font-serif text-lg font-bold text-plum-900">Select Perspective</h3>
+          <div class="grid grid-cols-4 lg:grid-cols-2 gap-3">
+            <button type="button" onclick="selectGalleryImage(0)" class="gallery-thumb rounded-xl overflow-hidden border border-ivory-200 aspect-square ring-2 ring-gold-500 transition-all focus:outline-none">
+              <img src="/static/images/hero.jpg" alt="Hero presentation" class="w-full h-full object-cover">
+            </button>
+            <button type="button" onclick="selectGalleryImage(1)" class="gallery-thumb rounded-xl overflow-hidden border border-ivory-200 aspect-square transition-all focus:outline-none">
+              <img src="/static/images/detail.jpg" alt="Macro detail" class="w-full h-full object-cover">
+            </button>
+            <button type="button" onclick="selectGalleryImage(2)" class="gallery-thumb rounded-xl overflow-hidden border border-ivory-200 aspect-square transition-all focus:outline-none">
+              <img src="/static/images/packaging.jpg" alt="Packaging box" class="w-full h-full object-cover">
+            </button>
+            <button type="button" onclick="selectGalleryImage(3)" class="gallery-thumb rounded-xl overflow-hidden border border-ivory-200 aspect-square transition-all focus:outline-none">
+              <img src="/static/images/model.jpg" alt="Festive wear silhouette" class="w-full h-full object-cover">
+            </button>
+          </div>
+
+          <!-- Verified Specs Snapshot -->
+          <div class="bg-ivory-100 p-4 rounded-xl border border-ivory-200 mt-2">
+            <h4 class="font-serif font-bold text-sm text-plum-900 mb-2">Verified Specifications</h4>
+            <ul class="text-xs text-gray-700 space-y-1.5">
+              <li class="flex items-center justify-between">
+                <span class="text-gray-500">Height / Width:</span>
+                <span class="font-semibold">7.2 cm × 3.1 cm</span>
+              </li>
+              <li class="flex items-center justify-between">
+                <span class="text-gray-500">Weight (Pair):</span>
+                <span class="font-semibold">28 grams (Lightweight)</span>
+              </li>
+              <li class="flex items-center justify-between">
+                <span class="text-gray-500">Illumination:</span>
+                <span class="font-semibold">Warm Golden Micro-LED</span>
+              </li>
+              <li class="flex items-center justify-between">
+                <span class="text-gray-500">Battery Type:</span>
+                <span class="font-semibold">Replaceable LR41 Coin Cell</span>
+              </li>
+              <li class="flex items-center justify-between">
+                <span class="text-gray-500">Finish:</span>
+                <span class="font-semibold">Anti-Tarnish Champagne Gold</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       5. OFFER AND COUPON SECTION
+       ========================================================================= -->
+  <section id="offers" class="py-12 md:py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-10">
+      <span class="text-xs font-bold tracking-widest text-gold-700 uppercase">Verified Loyalty Discounts</span>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-plum-900 mt-1">Exclusive Milestone Coupons</h2>
+      <p class="text-gray-600 text-xs sm:text-sm mt-2">
+        Discounts are securely validated against your verified customer phone and email order history on our server. Coupon stacking is prohibited.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Tier 1: FIRST50 -->
+      <div class="bg-white rounded-2xl p-6 border-2 border-gold-500 shadow-md relative flex flex-col justify-between group hover:shadow-xl transition-shadow">
+        <div class="absolute -top-3 left-6 bg-gold-500 text-plum-900 text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full tracking-wider shadow">
+          Grand Launch Special
+        </div>
+        <div>
+          <div class="flex items-center justify-between mt-2 mb-3">
+            <span class="font-serif text-3xl font-bold text-plum-900">50% OFF</span>
+            <span class="px-2.5 py-1 bg-gold-100 text-gold-900 text-xs font-mono font-bold rounded border border-gold-300">FIRST50</span>
+          </div>
+          <h4 class="font-serif font-bold text-base text-plum-800 mb-1">First Order Welcome Offer</h4>
+          <p class="text-xs text-gray-600 mb-4">
+            Get 50% discount on your very first purchase at GlowMint. Server verified against prior order records.
+          </p>
+          <ul class="text-[11px] text-gray-500 space-y-1 mb-6 border-t border-ivory-200 pt-3">
+            <li>• Eligibility: 1st completed order only</li>
+            <li>• Maximum discount cap: ₹500.00</li>
+            <li>• Minimum order value: ₹300.00</li>
+            <li>• Launch Price Example: <strong>₹300.00</strong> (from ₹600)</li>
+          </ul>
+        </div>
+        <button onclick="applyCouponFromCard('FIRST50')" class="w-full btn-gold py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider">
+          Apply FIRST50 to Cart
+        </button>
+      </div>
+
+      <!-- Tier 2: SECOND20 -->
+      <div class="bg-white rounded-2xl p-6 border border-ivory-200 shadow-sm relative flex flex-col justify-between group hover:shadow-md transition-shadow">
+        <div>
+          <div class="flex items-center justify-between mt-2 mb-3">
+            <span class="font-serif text-3xl font-bold text-plum-900">20% OFF</span>
+            <span class="px-2.5 py-1 bg-ivory-100 text-gray-800 text-xs font-mono font-bold rounded border border-ivory-200">SECOND20</span>
+          </div>
+          <h4 class="font-serif font-bold text-base text-plum-800 mb-1">Second Order Reward</h4>
+          <p class="text-xs text-gray-600 mb-4">
+            Thank you for returning! Enjoy 20% savings on your second verified festive order.
+          </p>
+          <ul class="text-[11px] text-gray-500 space-y-1 mb-6 border-t border-ivory-200 pt-3">
+            <li>• Eligibility: 2nd verified order only</li>
+            <li>• Maximum discount cap: ₹300.00</li>
+            <li>• Minimum order value: ₹300.00</li>
+            <li>• Final Price Example: <strong>₹480.00</strong> (from ₹600)</li>
+          </ul>
+        </div>
+        <button onclick="applyCouponFromCard('SECOND20')" class="w-full btn-plum py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider">
+          Apply SECOND20 to Cart
+        </button>
+      </div>
+
+      <!-- Tier 3: THIRD10 -->
+      <div class="bg-white rounded-2xl p-6 border border-ivory-200 shadow-sm relative flex flex-col justify-between group hover:shadow-md transition-shadow">
+        <div>
+          <div class="flex items-center justify-between mt-2 mb-3">
+            <span class="font-serif text-3xl font-bold text-plum-900">10% OFF</span>
+            <span class="px-2.5 py-1 bg-ivory-100 text-gray-800 text-xs font-mono font-bold rounded border border-ivory-200">THIRD10</span>
+          </div>
+          <h4 class="font-serif font-bold text-base text-plum-800 mb-1">Third Order Loyalty</h4>
+          <p class="text-xs text-gray-600 mb-4">
+            Continued patronage discount automatically unlocked on your third verified purchase.
+          </p>
+          <ul class="text-[11px] text-gray-500 space-y-1 mb-6 border-t border-ivory-200 pt-3">
+            <li>• Eligibility: 3rd verified order only</li>
+            <li>• Maximum discount cap: ₹200.00</li>
+            <li>• Minimum order value: ₹300.00</li>
+            <li>• Final Price Example: <strong>₹540.00</strong> (from ₹600)</li>
+          </ul>
+        </div>
+        <button onclick="applyCouponFromCard('THIRD10')" class="w-full btn-plum py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider">
+          Apply THIRD10 to Cart
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       6. PRODUCT DETAILS
+       ========================================================================= -->
+  <section id="details" class="py-12 bg-ivory-100 border-y border-ivory-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <span class="text-xs font-bold tracking-widest text-gold-700 uppercase">Verified Specifications</span>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-plum-900 mt-1">Design, Illumination & Care</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-2">
+          Every detail is engineered for festive comfort, lightweight wear, and luminous beauty.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Verified Features -->
+        <div class="bg-white p-6 rounded-2xl border border-ivory-200 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif font-bold text-lg text-plum-900 mb-3">Verified Features</h3>
+          <ul class="text-xs text-gray-700 space-y-2.5">
+            {% for feature in product.features %}
+            <li class="flex items-start gap-2">
+              <span class="text-gold-500 font-bold mt-0.5">✦</span>
+              <span>{{ feature }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- LED Illumination Note -->
+        <div class="bg-white p-6 rounded-2xl border border-gold-500/30 shadow-sm relative overflow-hidden">
+          <div class="absolute -right-4 -bottom-4 w-28 h-28 bg-gold-100/40 rounded-full blur-xl pointer-events-none"></div>
+          <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+          <h3 class="font-serif font-bold text-lg text-plum-900 mb-3">LED Technology & Functionality</h3>
+          <p class="text-xs text-gray-700 leading-relaxed mb-4">
+            {{ product.led_note }}
+          </p>
+          <div class="bg-ivory-50 p-3 rounded-xl border border-ivory-200 text-[11px] text-gray-600">
+            <strong>Runtime:</strong> 24+ continuous hours on one set of coin cells. Easily switch off between events to preserve power.
+          </div>
+        </div>
+
+        <!-- Care & Package Contents -->
+        <div class="bg-white p-6 rounded-2xl border border-ivory-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-4">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+            </div>
+            <h3 class="font-serif font-bold text-lg text-plum-900 mb-2">Package Contents</h3>
+            <p class="text-xs text-gray-700 leading-relaxed mb-4">
+              {{ product.package_contents }}
+            </p>
+
+            <h4 class="font-serif font-bold text-sm text-plum-900 mb-1">Care Instructions</h4>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              {{ product.care_instructions }}
+            </p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-ivory-200 text-[11px] text-gray-500">
+            Hypoallergenic post • Safe for sensitive ears
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       7. TRUST SECTION
+       ========================================================================= -->
+  <section id="trust" class="py-12 md:py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-10">
+      <span class="text-xs font-bold tracking-widest text-gold-700 uppercase">Customer Guarantee</span>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-plum-900 mt-1">Payment Security & Transparent Policies</h2>
+      <p class="text-gray-600 text-xs sm:text-sm mt-2">
+        We prioritize honesty and clear communication. No fake counters, no inflated countdowns, and no fabricated reviews.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- 1. Secure Payments -->
+      <div class="bg-white p-5 rounded-2xl border border-ivory-200 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <h3 class="font-serif font-bold text-base text-plum-900 mb-1">Razorpay Verified</h3>
+        <p class="text-xs text-gray-600">
+          All major UPI apps (GPay, PhonePe, Paytm), Visa/Mastercard/RuPay credit & debit cards, and NetBanking via 256-bit SSL encrypted gateway.
+        </p>
+      </div>
+
+      <!-- 2. Insured Shipping -->
+      <div class="bg-white p-5 rounded-2xl border border-ivory-200 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+          </svg>
+        </div>
+        <h3 class="font-serif font-bold text-base text-plum-900 mb-1">Free Insured Courier</h3>
+        <p class="text-xs text-gray-600">
+          Dispatched within 24–48 business hours with premium logistics partners (Delhivery / Blue Dart). Real-time SMS & WhatsApp tracking updates.
+        </p>
+      </div>
+
+      <!-- 3. Replacement Guarantee -->
+      <div class="bg-white p-5 rounded-2xl border border-ivory-200 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h3 class="font-serif font-bold text-base text-plum-900 mb-1">7-Day Replacement</h3>
+        <p class="text-xs text-gray-600">
+          Hassle-free replacement for any transit damage or manufacturing defect. Reach out to support with an unboxing video within 7 days.
+        </p>
+      </div>
+
+      <!-- 4. Dedicated Support -->
+      <div class="bg-white p-5 rounded-2xl border border-ivory-200 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+        <h3 class="font-serif font-bold text-base text-plum-900 mb-1">Direct Indian Support</h3>
+        <p class="text-xs text-gray-600">
+          Email: <span class="font-semibold text-plum-900">{{ settings.support_email }}</span><br>
+          WhatsApp: <span class="font-semibold text-plum-900">{{ settings.support_phone }}</span><br>
+          Hours: {{ settings.support_hours }}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       8. FAQ SECTION
+       ========================================================================= -->
+  <section id="faq" class="py-12 bg-white border-y border-ivory-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-xl mx-auto mb-10">
+        <span class="text-xs font-bold tracking-widest text-gold-700 uppercase">Got Questions?</span>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-plum-900 mt-1">Frequently Asked Questions</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-2">
+          Clear, truthful answers regarding our products, discounts, payments, and delivery.
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Question 1 -->
+        <div class="border border-ivory-200 rounded-xl overflow-hidden bg-ivory-50">
+          <button type="button" class="faq-trigger w-full px-5 py-4 text-left flex items-center justify-between font-serif font-bold text-base text-plum-900 hover:text-plum-700 transition-colors" aria-expanded="false">
+            <span>How do the milestone coupons (FIRST50, SECOND20, THIRD10) work?</span>
+            <svg class="faq-icon w-5 h-5 text-gold-700 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-content hidden px-5 pb-4 text-xs text-gray-700 leading-relaxed border-t border-ivory-200 pt-3">
+            Our discount system automatically queries our verified database against your phone number and email address. <strong>FIRST50</strong> provides 50% discount (up to ₹500) exclusively on your very first order. <strong>SECOND20</strong> gives 20% off (up to ₹300) on your second order, and <strong>THIRD10</strong> provides 10% off (up to ₹200) on your third order. Coupons cannot be stacked and cannot be reused on the same order.
+          </div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="border border-ivory-200 rounded-xl overflow-hidden bg-ivory-50">
+          <button type="button" class="faq-trigger w-full px-5 py-4 text-left flex items-center justify-between font-serif font-bold text-base text-plum-900 hover:text-plum-700 transition-colors" aria-expanded="false">
+            <span>Which payment methods are supported?</span>
+            <svg class="faq-icon w-5 h-5 text-gold-700 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-content hidden px-5 pb-4 text-xs text-gray-700 leading-relaxed border-t border-ivory-200 pt-3">
+            We support all major prepaid Indian payment options powered by Razorpay. This includes UPI (Google Pay, PhonePe, Paytm, BHIM, CRED), Credit & Debit Cards (Visa, Mastercard, RuPay, Maestro), and NetBanking across 50+ Indian commercial banks. All transactions are protected by 256-bit bank-grade encryption.
+          </div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="border border-ivory-200 rounded-xl overflow-hidden bg-ivory-50">
+          <button type="button" class="faq-trigger w-full px-5 py-4 text-left flex items-center justify-between font-serif font-bold text-base text-plum-900 hover:text-plum-700 transition-colors" aria-expanded="false">
+            <span>Is Cash on Delivery (COD) available?</span>
+            <svg class="faq-icon w-5 h-5 text-gold-700 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-content hidden px-5 pb-4 text-xs text-gray-700 leading-relaxed border-t border-ivory-200 pt-3">
+            <strong>Currently unavailable — prepaid orders only.</strong> To ensure guaranteed delivery, avoid courier return-to-origin transit damages, and keep promotional launch prices as low as ₹300, we currently accept only prepaid orders via Razorpay.
+          </div>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="border border-ivory-200 rounded-xl overflow-hidden bg-ivory-50">
+          <button type="button" class="faq-trigger w-full px-5 py-4 text-left flex items-center justify-between font-serif font-bold text-base text-plum-900 hover:text-plum-700 transition-colors" aria-expanded="false">
+            <span>What are the shipping, transit and return policies?</span>
+            <svg class="faq-icon w-5 h-5 text-gold-700 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-content hidden px-5 pb-4 text-xs text-gray-700 leading-relaxed border-t border-ivory-200 pt-3">
+            All orders are processed and dispatched within 24 to 48 business hours. Delivery takes approximately 2–4 business days in major metro cities and 4–6 business days across other regions of India. We offer a 7-day hassle-free replacement guarantee for items that arrive damaged or with defective LED circuitry.
+          </div>
+        </div>
+
+        <!-- Question 5 -->
+        <div class="border border-ivory-200 rounded-xl overflow-hidden bg-ivory-50">
+          <button type="button" class="faq-trigger w-full px-5 py-4 text-left flex items-center justify-between font-serif font-bold text-base text-plum-900 hover:text-plum-700 transition-colors" aria-expanded="false">
+            <span>How can a customer contact support?</span>
+            <svg class="faq-icon w-5 h-5 text-gold-700 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-content hidden px-5 pb-4 text-xs text-gray-700 leading-relaxed border-t border-ivory-200 pt-3">
+            You can reach our dedicated support desk directly via email at <a href="mailto:{{ settings.support_email }}" class="text-plum-900 underline font-semibold">{{ settings.support_email }}</a> or message us on WhatsApp at <span class="font-semibold">{{ settings.support_phone }}</span> during business hours (Monday through Saturday, 10:00 AM – 6:00 PM IST).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       9. FOOTER
+       ========================================================================= -->
+  <footer class="plum-gradient-bg text-gray-300 py-12 px-4 sm:px-6 border-t border-gold-700/40">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <!-- Col 1: Brand Info -->
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-8 h-8 rounded-full bg-gold-500 flex items-center justify-center text-plum-900 font-bold">✦</div>
+          <span class="font-serif text-2xl font-bold text-white tracking-wide">GlowMint Accessories</span>
+        </div>
+        <p class="text-xs text-gray-300 max-w-md leading-relaxed mb-4">
+          Celebrating traditional Indian festive elegance with contemporary illuminated jewelry craftsmanship. Dedicated to authentic quality, respectful pricing, and trustworthy service.
+        </p>
+        <p class="text-[11px] text-gray-400">
+          Operating out of New Delhi, India. All product designs registered with intellectual property guidelines.
+        </p>
+      </div>
+
+      <!-- Col 2: Customer Assistance -->
+      <div>
+        <h4 class="font-serif font-bold text-sm text-gold-300 uppercase tracking-wider mb-3">Customer Support</h4>
+        <ul class="text-xs text-gray-300 space-y-2">
+          <li>Email: <a href="mailto:{{ settings.support_email }}" class="hover:text-white underline">{{ settings.support_email }}</a></li>
+          <li>WhatsApp: <span class="text-white">{{ settings.support_phone }}</span></li>
+          <li>Hours: {{ settings.support_hours }}</li>
+          <li>Prepaid Order Tracking: Available via SMS</li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Legal & Store Policies -->
+      <div>
+        <h4 class="font-serif font-bold text-sm text-gold-300 uppercase tracking-wider mb-3">Store Policies</h4>
+        <ul class="text-xs text-gray-300 space-y-2">
+          <li><button type="button" onclick="openPolicyModal('privacy')" class="hover:text-gold-300 text-left underline">Privacy Policy</button></li>
+          <li><button type="button" onclick="openPolicyModal('terms')" class="hover:text-gold-300 text-left underline">Terms & Conditions</button></li>
+          <li><button type="button" onclick="openPolicyModal('shipping')" class="hover:text-gold-300 text-left underline">Shipping & Delivery Policy</button></li>
+          <li><button type="button" onclick="openPolicyModal('refund')" class="hover:text-gold-300 text-left underline">Return & Refund Policy</button></li>
+          <li class="pt-2"><a href="/admin/login" class="text-[11px] text-gold-300/80 hover:text-gold-300">Staff Admin Login →</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-2">
+      <span>© 2026 GlowMint Accessories. All rights reserved.</span>
+      <span>Prepaid Orders Processed via 256-Bit Razorpay Gateway</span>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       CHECKOUT DRAWER / MODAL
+       ========================================================================= -->
+  <div id="checkout-drawer" class="hidden fixed inset-0 z-50 overflow-hidden">
+    <!-- Backdrop -->
+    <div onclick="closeCheckoutDrawer()" class="absolute inset-0 modal-backdrop transition-opacity"></div>
+
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full border-l border-ivory-200">
+        
+        <!-- Drawer Header -->
+        <div class="p-4 sm:p-5 plum-gradient-bg text-white flex items-center justify-between border-b border-gold-700/40">
+          <div>
+            <h3 class="font-serif font-bold text-lg sm:text-xl text-gold-100">Secure Checkout</h3>
+            <span class="text-[11px] text-gray-300">Direct Express Delivery</span>
+          </div>
+          <button type="button" onclick="closeCheckoutDrawer()" class="p-2 text-gray-300 hover:text-white rounded-lg focus:outline-none" aria-label="Close checkout">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Drawer Scrollable Body -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+          
+          <!-- Item Summary & Quantity -->
+          <div class="flex items-center gap-3 p-3 bg-ivory-50 rounded-xl border border-ivory-200">
+            <img src="/static/images/hero.jpg" alt="Jhumka thumbnail" class="w-16 h-16 rounded-lg object-cover border border-gold-500/30">
+            <div class="flex-1">
+              <h4 class="font-serif font-bold text-sm text-plum-900 leading-tight">LED Lantern Jhumka Earrings</h4>
+              <span class="text-xs text-gray-600 block mt-0.5">₹{{ "%.0f"|format(product.regular_price) }} / pair</span>
+              <span class="text-[10px] text-emerald-700 font-medium">In Stock • Ready for dispatch</span>
+            </div>
+            
+            <!-- Quantity Selector -->
+            <div class="flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden">
+              <button type="button" id="checkout-qty-minus" class="px-2.5 py-1 text-gray-600 hover:bg-gray-100 font-bold focus:outline-none">-</button>
+              <span id="checkout-qty-display" class="px-3 py-1 text-xs font-bold text-plum-900">1</span>
+              <button type="button" id="checkout-qty-plus" class="px-2.5 py-1 text-gray-600 hover:bg-gray-100 font-bold focus:outline-none">+</button>
+            </div>
+          </div>
+
+          <!-- Coupon Input Form -->
+          <div class="bg-white p-3.5 rounded-xl border border-ivory-200 shadow-sm">
+            <label for="checkout-coupon-input" class="block text-xs font-bold text-plum-900 mb-1.5 uppercase tracking-wider">
+              Have a Coupon Code?
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="checkout-coupon-input" placeholder="e.g. FIRST50" class="flex-1 px-3 py-2 text-xs font-mono uppercase border border-gray-300 rounded-lg focus:ring-1 focus:ring-gold-500 focus:border-gold-500 uppercase">
+              <button type="button" id="btn-apply-coupon" class="px-4 py-2 bg-plum-800 hover:bg-plum-700 text-gold-100 text-xs font-bold rounded-lg transition-colors">
+                Apply
+              </button>
+            </div>
+            <div id="checkout-coupon-feedback" class="mt-2"></div>
+            <div class="mt-2 flex items-center gap-1.5 text-[11px] text-gray-500">
+              <span>Quick codes:</span>
+              <button type="button" onclick="applyCouponFromCard('FIRST50')" class="text-plum-900 font-semibold underline">FIRST50</button>
+              <span>•</span>
+              <button type="button" onclick="applyCouponFromCard('SECOND20')" class="text-plum-900 font-semibold underline">SECOND20</button>
+              <span>•</span>
+              <button type="button" onclick="applyCouponFromCard('THIRD10')" class="text-plum-900 font-semibold underline">THIRD10</button>
+            </div>
+          </div>
+
+          <!-- Checkout Customer Details Form -->
+          <form id="checkout-form" class="space-y-3.5">
+            <h4 class="font-serif font-bold text-sm text-plum-900 pt-1 border-t border-ivory-200">
+              Delivery Address
+            </h4>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-700 mb-1">Full Name *</label>
+              <input type="text" name="customer_name" required placeholder="Receiver full name" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 mb-1">Mobile Number (10 digits) *</label>
+                <input type="tel" id="customer-phone" name="customer_phone" required pattern="[0-9]{10}" placeholder="9876543210" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 mb-1">Email Address *</label>
+                <input type="email" id="customer-email" name="customer_email" required placeholder="email@domain.com" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-700 mb-1">Street / Flat / House Address *</label>
+              <input type="text" name="address_line" required placeholder="Flat 402, Lotus Residency, MG Road" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 mb-1">City *</label>
+                <input type="text" name="city" required placeholder="City" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 mb-1">State *</label>
+                <input type="text" name="state" required placeholder="State" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-700 mb-1">PIN Code *</label>
+                <input type="text" name="pincode" required pattern="[0-9]{6}" placeholder="6 digits" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-700 mb-1">Landmark (Optional)</label>
+              <input type="text" name="landmark" placeholder="Near Temple / Metro station" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-plum-800">
+            </div>
+
+            <!-- Payment Method Selector -->
+            <div class="pt-2 border-t border-ivory-200">
+              <label class="block text-[11px] font-semibold text-gray-700 mb-2 uppercase tracking-wider">Payment Method</label>
+              
+              <!-- Razorpay Option (Active) -->
+              <label class="flex items-center justify-between p-3 rounded-xl border-2 border-gold-500 bg-gold-50/40 cursor-pointer mb-2">
+                <div class="flex items-center gap-2.5">
+                  <input type="radio" name="payment_method_choice" value="razorpay" checked class="text-plum-800 focus:ring-plum-800">
+                  <div>
+                    <span class="text-xs font-bold text-plum-900 block">Prepaid via Razorpay</span>
+                    <span class="text-[10px] text-gray-600 block">UPI (GPay/PhonePe), Cards, NetBanking</span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Encrypted</span>
+              </label>
+
+              <!-- COD Option (Explicitly Disabled) -->
+              <div class="p-3 rounded-xl border border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <input type="radio" disabled class="cursor-not-allowed text-gray-400">
+                    <div>
+                      <span class="text-xs font-semibold text-gray-600 block line-through">Cash on Delivery (COD)</span>
+                      <span class="text-[10px] text-rose-700 font-semibold block">{{ settings.cod_message | default("Currently unavailable — prepaid orders only.") }}</span>
+                    </div>
+                  </div>
+                  <span class="text-[9px] uppercase font-bold text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">Disabled</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price Breakdown Box -->
+            <div class="p-4 bg-ivory-100 rounded-xl border border-ivory-200 space-y-1.5 text-xs text-gray-700">
+              <div class="flex justify-between">
+                <span>Product Subtotal:</span>
+                <span id="checkout-subtotal-val" class="font-medium text-gray-900">₹600.00</span>
+              </div>
+              <div id="checkout-discount-row" class="flex justify-between text-emerald-700 font-semibold hidden">
+                <span>Coupon Discount:</span>
+                <span id="checkout-discount-val">-₹0.00</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Shipping Charges:</span>
+                <span id="checkout-shipping-val">FREE (Launch Offer)</span>
+              </div>
+              <div class="pt-2 border-t border-ivory-200 flex justify-between text-sm font-bold text-plum-900">
+                <span>Total Payable Amount:</span>
+                <span id="checkout-total-val" class="font-serif text-base text-plum-900">₹600.00</span>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="btn-submit-order" class="w-full btn-gold py-3.5 px-4 rounded-xl text-sm font-bold tracking-wide uppercase flex items-center justify-center gap-2 shadow-lg">
+              <span class="font-serif">PROCEED TO SECURE PAYMENT (<span id="pay-button-amount">₹600.00</span>)</span>
+            </button>
+            <p class="text-[10px] text-center text-gray-500 mt-1">
+              By clicking proceed, you agree to our Terms & Conditions and 7-Day Replacement Policy.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       VIDEO ILLUMINATION DEMO MODAL
+       ========================================================================= -->
+  <div id="video-demo-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div onclick="closeVideoModal()" class="absolute inset-0 modal-backdrop"></div>
+    <div class="relative bg-plum-900 text-white rounded-2xl max-w-lg w-full p-6 border border-gold-500/50 shadow-2xl z-10">
+      <div class="flex items-center justify-between pb-3 border-b border-gold-700/40 mb-4">
+        <h4 class="font-serif font-bold text-lg text-gold-100">LED Illumination Demonstration</h4>
+        <button type="button" onclick="closeVideoModal()" class="text-gray-300 hover:text-white">✕</button>
+      </div>
+      
+      <!-- Video / Interactive Illumination Preview -->
+      <div class="relative aspect-video rounded-xl overflow-hidden bg-black flex items-center justify-center border border-white/10 mb-4">
+        <img src="/static/images/detail.jpg" alt="Video preview thumbnail" class="w-full h-full object-cover opacity-75">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 flex flex-col justify-end p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-3 h-3 rounded-full bg-gold-500 animate-ping"></span>
+            <span class="text-xs font-bold text-gold-300">Micro-LED Warm Aura Activation</span>
+          </div>
+          <p class="text-[11px] text-gray-300 leading-tight">
+            Activated via miniature toggle at base. Gentle non-heating golden LED creates a warm, candle-lit radiance through the lattice openwork.
+          </p>
+        </div>
+      </div>
+
+      <div class="text-xs text-gray-300 space-y-1.5 mb-4">
+        <p>• <strong>Switch Mechanism:</strong> Miniature slide switch under inner dome base.</p>
+        <p>• <strong>Battery Access:</strong> Coin-cell compartment screws open smoothly by hand.</p>
+        <p>• <strong>Included:</strong> Fresh pair pre-installed + complimentary spare battery pack.</p>
+      </div>
+
+      <button type="button" onclick="closeVideoModal(); openCheckoutDrawer('FIRST50');" class="w-full btn-gold py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">
+        Shop This Pair Now
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PAYMENT SIMULATION MODAL (When in Test / QA Sandbox Mode)
+       ========================================================================= -->
+  <div id="payment-simulation-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 modal-backdrop"></div>
+    <div class="relative bg-white text-plum-900 rounded-2xl max-w-md w-full p-6 border-2 border-gold-500 shadow-2xl z-10">
+      <div class="flex items-center justify-between pb-3 border-b border-ivory-200 mb-4">
+        <div>
+          <span class="text-[10px] font-bold text-gold-700 uppercase tracking-widest block">Razorpay Integration Gateway</span>
+          <h4 class="font-serif font-bold text-lg text-plum-900">Prepaid Payment Verification</h4>
+        </div>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">Test Mode</span>
+      </div>
+
+      <div class="bg-ivory-50 p-4 rounded-xl border border-ivory-200 mb-4 text-xs space-y-2">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Order ID:</span>
+          <span id="sim-order-id" class="font-mono font-bold text-plum-900">GM-2026-1001</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Payable Amount:</span>
+          <span id="sim-amount" class="font-serif font-bold text-base text-plum-900">₹300.00</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Customer:</span>
+          <span id="sim-customer-name" class="font-medium">Customer</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Gateway:</span>
+          <span class="font-medium">UPI / NetBanking / Cards via Razorpay</span>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-gray-600 mb-5 leading-relaxed">
+        Integration-ready mode is active. When live Razorpay credentials (<code class="bg-gray-100 px-1 py-0.5 rounded text-[10px]">RAZORPAY_KEY_ID</code> & <code class="bg-gray-100 px-1 py-0.5 rounded text-[10px]">RAZORPAY_KEY_SECRET</code>) are configured in <code class="bg-gray-100 px-1 py-0.5 rounded text-[10px]">.env</code>, the live Razorpay standard checkout popup opens automatically.
+      </p>
+
+      <div class="flex gap-3">
+        <button type="button" id="btn-sim-pay-cancel" class="flex-1 py-2.5 px-3 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-100">
+          Cancel
+        </button>
+        <button type="button" id="btn-sim-pay-success" class="flex-1 btn-gold py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider">
+          Complete Test Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ORDER CONFIRMATION MODAL
+       ========================================================================= -->
+  <div id="order-confirmation-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 modal-backdrop"></div>
+    <div class="relative bg-white text-plum-900 rounded-2xl max-w-md w-full p-6 border-2 border-emerald-500 shadow-2xl z-10 text-center">
+      <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center mb-4">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+
+      <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 block mb-1">Prepaid Payment Confirmed</span>
+      <h3 class="font-serif text-2xl font-bold text-plum-900 mb-2">Thank You For Your Order!</h3>
+      <p class="text-xs text-gray-600 mb-4">
+        Your order has been recorded and scheduled for priority quality inspection and insured dispatch.
+      </p>
+
+      <div class="bg-ivory-50 p-4 rounded-xl border border-ivory-200 mb-5 text-xs text-left space-y-2">
+        <div class="flex justify-between items-center pb-2 border-b border-ivory-200">
+          <span class="text-gray-500">Order Reference:</span>
+          <span id="confirmed-order-id" class="font-mono font-bold text-sm text-plum-900">GM-2026-1001</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Dispatch Window:</span>
+          <span class="font-semibold text-gray-800">Within 24–48 Business Hours</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Courier Tracking:</span>
+          <span class="font-semibold text-emerald-700">SMS / WhatsApp Update Sent</span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <a href="/" class="block w-full btn-plum py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">
+          Return to Storefront
+        </a>
+        <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" class="block w-full py-2 rounded-xl text-xs font-semibold text-emerald-700 hover:underline">
+          Questions? Contact Support on WhatsApp →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       POLICY MODAL (Dynamic Content)
+       ========================================================================= -->
+  <div id="policy-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div onclick="closePolicyModal()" class="absolute inset-0 modal-backdrop"></div>
+    <div class="relative bg-white text-plum-900 rounded-2xl max-w-xl w-full p-6 border border-ivory-200 shadow-2xl z-10 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-ivory-200 mb-4">
+        <h3 id="policy-modal-title" class="font-serif font-bold text-xl text-plum-900">Store Policy</h3>
+        <button type="button" onclick="closePolicyModal()" class="text-gray-400 hover:text-gray-700">✕</button>
+      </div>
+      <div id="policy-modal-body" class="overflow-y-auto pr-2 text-xs text-gray-700 leading-relaxed space-y-3 flex-1">
+        <!-- Injected via JavaScript -->
+      </div>
+      <div class="pt-4 border-t border-ivory-200 mt-4 text-right">
+        <button type="button" onclick="closePolicyModal()" class="px-5 py-2 bg-plum-800 text-gold-100 rounded-xl text-xs font-bold">
+          Close Policy
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side JavaScript -->
+  <script src="/static/js/storefront.js"></script>
+</body>
+</html>
