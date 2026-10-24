@@ -33,8 +33,13 @@ A high-performance, single-product e-commerce platform for **GlowMint Accessorie
 ## Quickstart & Local Development
 
 ### 1. Run the Application
-Start the development server using Uvicorn:
+Start the development server using npm:
 
+```bash
+npm run dev
+```
+
+*(Or directly using Python)*:
 ```bash
 python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
