@@ -1,0 +1,23 @@
+{
+  "name": "glowmint-accessories",
+  "version": "1.0.0",
+  "description": "GlowMint Accessories — Production-ready Single-Product LED Lantern Jhumka Storefront & Merchant Suite",
+  "main": "app.py",
+  "scripts": {
+    "dev": "python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload",
+    "start": "python3 -m uvicorn app:app --host 0.0.0.0 --port 8000",
+    "test": "python3 -m pytest -v tests/test_storefront.py",
+    "backup": "python3 scripts/backup_db.py",
+    "restore": "python3 scripts/restore_db.py",
+    "create-admin": "python3 scripts/create_admin.py"
+  },
+  "keywords": [
+    "glowmint",
+    "ecommerce",
+    "jhumka",
+    "fastapi",
+    "razorpay"
+  ],
+  "author": "GlowMint Accessories",
+  "license": "UNLICENSED"
+}
