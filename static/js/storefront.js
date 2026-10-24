@@ -39,8 +39,96 @@ document.addEventListener('DOMContentLoaded', () => {
   initGallery();
   initFaqAccordions();
   initCheckoutEvents();
+  initIlluminationToggle();
+  initStickyMobileBar();
+  initLightbox();
   fetchInitialPricing();
 });
+
+// -----------------------------------------------------------------------------
+// Interactive Evening Illumination Toggle
+// -----------------------------------------------------------------------------
+function initIlluminationToggle() {
+  const toggleBtn = document.getElementById('btn-toggle-glow');
+  const heroImg = document.getElementById('hero-product-image');
+  const glowStatus = document.getElementById('glow-status-text');
+  const heroCard = document.getElementById('hero-media-card');
+  const heroSection = document.getElementById('hero');
+
+  if (!toggleBtn || !heroImg) return;
+
+  let isGlowOn = true; // Default warm ambient glow
+
+  toggleBtn.addEventListener('click', () => {
+    isGlowOn = !isGlowOn;
+    if (isGlowOn) {
+      heroImg.classList.add('led-illumination-glow');
+      if (heroCard) heroCard.classList.add('lantern-glow-card');
+      if (heroSection) heroSection.classList.add('night-glow-mode');
+      toggleBtn.classList.add('bg-gold-500', 'text-plum-950');
+      toggleBtn.classList.remove('bg-black/60', 'text-gold-200');
+      if (glowStatus) glowStatus.textContent = '🌙 Festival Glow: ON';
+      if (window.showToast) window.showToast('✨ Warm candlelight lantern aura active!');
+    } else {
+      heroImg.classList.remove('led-illumination-glow');
+      if (heroCard) heroCard.classList.remove('lantern-glow-card');
+      if (heroSection) heroSection.classList.remove('night-glow-mode');
+      toggleBtn.classList.remove('bg-gold-500', 'text-plum-950');
+      toggleBtn.classList.add('bg-black/60', 'text-gold-200');
+      if (glowStatus) glowStatus.textContent = '☀️ Daylight: OFF';
+    }
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Sticky Mobile Action Bar
+// -----------------------------------------------------------------------------
+function initStickyMobileBar() {
+  const stickyBar = document.getElementById('mobile-sticky-bar');
+  if (!stickyBar) return;
+
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY || window.pageYOffset;
+    const heroEl = document.getElementById('hero');
+    const heroHeight = heroEl ? heroEl.offsetHeight : 400;
+
+    const drawer = document.getElementById('checkout-drawer');
+    const isDrawerOpen = drawer && !drawer.classList.contains('hidden');
+
+    if (scrollY > heroHeight && !isDrawerOpen) {
+      stickyBar.classList.add('visible');
+    } else {
+      stickyBar.classList.remove('visible');
+    }
+  }, { passive: true });
+}
+
+// -----------------------------------------------------------------------------
+// Image Lightbox Viewer
+// -----------------------------------------------------------------------------
+function initLightbox() {
+  window.openImageLightbox = function(src, title) {
+    const modal = document.getElementById('image-lightbox-modal');
+    const img = document.getElementById('lightbox-image');
+    const titleEl = document.getElementById('lightbox-title');
+    if (!modal || !img) return;
+
+    img.src = src;
+    if (titleEl) titleEl.textContent = title || 'GlowMint LED Lantern Jhumka';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeImageLightbox = function() {
+    const modal = document.getElementById('image-lightbox-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+  };
+}
 
 // -----------------------------------------------------------------------------
 // Gallery Interaction
@@ -653,3 +741,85 @@ window.closePolicyModal = function() {
     modal.classList.remove('flex');
   }
 };
+
+// -----------------------------------------------------------------------------
+// Interactive UI Helpers: Pincode, Copy Code, Toast, Gallery Navigation
+// -----------------------------------------------------------------------------
+window.showToast = function(message) {
+  const toast = document.getElementById('toast-notification');
+  const msgEl = document.getElementById('toast-message');
+  if (!toast || !msgEl) return;
+  msgEl.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3500);
+};
+
+window.copyCouponCode = function(code) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      showToast(`✨ Coupon ${code} copied! Applying to cart...`);
+      setTimeout(() => {
+        openCheckoutDrawer(code);
+      }, 300);
+    }).catch(() => {
+      openCheckoutDrawer(code);
+    });
+  } else {
+    openCheckoutDrawer(code);
+  }
+};
+
+window.navigateGallery = function(direction) {
+  let newIndex = state.activeGalleryIndex + direction;
+  if (newIndex < 0) newIndex = state.galleryImages.length - 1;
+  if (newIndex >= state.galleryImages.length) newIndex = 0;
+  if (window.selectGalleryImage) {
+    window.selectGalleryImage(newIndex);
+  }
+};
+
+window.checkPincodeDelivery = function() {
+  const input = document.getElementById('pincode-input');
+  const resultEl = document.getElementById('pincode-result');
+  if (!input || !resultEl) return;
+
+  const pin = input.value.trim().replace(/\D/g, '');
+  if (pin.length !== 6) {
+    resultEl.className = 'text-[11px] font-semibold text-rose-600 mt-2 block px-1';
+    resultEl.textContent = 'Please enter a valid 6-digit Indian PIN code.';
+    resultEl.classList.remove('hidden');
+    return;
+  }
+
+  let zoneText = 'All-India Insured Dispatch';
+  let days = '3–5 business days';
+  const prefix = pin.substring(0, 2);
+
+  if (['11', '12', '20'].includes(prefix)) {
+    zoneText = 'Delhi NCR Express';
+    days = 'Tomorrow (Guaranteed Priority Dispatch)';
+  } else if (['40', '41'].includes(prefix)) {
+    zoneText = 'Mumbai / Pune Region';
+    days = '2 business days';
+  } else if (['56', '57'].includes(prefix)) {
+    zoneText = 'Bengaluru Hub';
+    days = '2 business days';
+  } else if (['50'].includes(prefix)) {
+    zoneText = 'Hyderabad Hub';
+    days = '2-3 business days';
+  } else if (['60'].includes(prefix)) {
+    zoneText = 'Chennai Hub';
+    days = '3 business days';
+  } else if (['70'].includes(prefix)) {
+    zoneText = 'Kolkata Hub';
+    days = '3 business days';
+  }
+
+  resultEl.className = 'text-[11px] font-semibold text-emerald-800 mt-2 block px-2.5 py-2 bg-emerald-50 rounded-xl border border-emerald-200 shadow-sm';
+  resultEl.innerHTML = `✓ <strong>PIN ${pin} (${zoneText}):</strong> Free Insured Delivery by <strong>${days}</strong>. Covered by 7-Day transit guarantee.`;
+  resultEl.classList.remove('hidden');
+};
+

@@ -1,25 +1,33 @@
 /* ==========================================================================
-   GlowMint Accessories — Luxury Indian Festive Design System
-   Color Palette: Deep Royal Plum (#2A0815, #3B0D1E, #4E1428),
-                  Champagne Gold (#D4AF37, #E5C365, #F5E8C7),
-                  Warm White / Ivory (#FCFAF7, #F8F4EE)
+   GlowMint Accessories — Ultra-Luxury Indian Festive Design System
+   Theme: Palatial Indian Royal Haute Joaillerie
+   Palette: Royal Plum Velvet, Champagne 22K Gold, Starlight Amber, Soft Ivory
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-  --color-plum-900: #1D050E;
-  --color-plum-800: #2D0A16;
-  --color-plum-700: #3E0F20;
-  --color-plum-600: #55162D;
-  --color-gold-900: #8C6F1E;
-  --color-gold-700: #B89328;
+  --color-plum-950: #120309;
+  --color-plum-900: #1E0610;
+  --color-plum-850: #290815;
+  --color-plum-800: #350B1C;
+  --color-plum-700: #481026;
+  --color-plum-600: #5E1734;
+  --color-gold-900: #7A5C13;
+  --color-gold-700: #A88320;
+  --color-gold-600: #BF9B2D;
   --color-gold-500: #D4AF37;
-  --color-gold-300: #E6C86E;
-  --color-gold-100: #F7EECD;
-  --color-warm-white: #FCFAF7;
-  --color-warm-ivory: #F8F4EE;
-  --color-warm-sand: #EDE5D8;
-  --color-text-dark: #221518;
-  --color-text-muted: #6B5B60;
+  --color-gold-400: #E2C263;
+  --color-gold-300: #EED78C;
+  --color-gold-200: #F7E8BA;
+  --color-gold-100: #FCF5DC;
+  --color-amber-glow: #FFAE19;
+  --color-ivory-50: #FDFAF5;
+  --color-ivory-100: #F9F5EC;
+  --color-ivory-200: #EFE8DA;
+  --color-text-dark: #1E1215;
+  --color-text-muted: #6B575D;
+  --font-display: 'Cinzel', serif;
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
@@ -30,96 +38,390 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-warm-white);
+  background-color: var(--color-ivory-50);
   color: var(--color-text-dark);
   margin: 0;
   padding: 0;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-serif {
   font-family: var(--font-serif);
 }
 
-/* Gold Gradient Accents */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ==========================================================================
+   Palatial Royal Jaali / Lattice Pattern Textures
+   ========================================================================== */
+.jaali-bg {
+  background-color: var(--color-ivory-50);
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.12) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 0% 0%, rgba(30, 6, 16, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px, 14px 14px;
+}
+
+.jaali-dark-bg {
+  background-color: var(--color-plum-950);
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 0% 0%, rgba(255, 215, 0, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px, 16px 16px;
+}
+
+/* ==========================================================================
+   Luxury Gold Foil Shimmer & Gradients
+   ========================================================================== */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #D4AF37 0%, #F5E8C7 50%, #B89328 100%);
+  background: linear-gradient(135deg, #DFBD54 0%, #FFF3D1 25%, #D4AF37 55%, #9E791D 85%, #E8CA6E 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: gold-shimmer-sweep 7s linear infinite;
 }
 
-.gold-gradient-bg {
-  background: linear-gradient(135deg, #D4AF37 0%, #E8CA72 50%, #B89328 100%);
+@keyframes gold-shimmer-sweep {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 
-.gold-gradient-border {
-  border-image: linear-gradient(135deg, #D4AF37, #F5E8C7, #B89328) 1;
+.gold-shimmer-bg {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E2A5 30%, #DFBD54 60%, #B89025 100%);
 }
 
-.plum-gradient-bg {
-  background: linear-gradient(145deg, #2D0A16 0%, #3E0F20 60%, #1D050E 100%);
+.plum-velvet-bg {
+  background: radial-gradient(circle at 50% 0%, #3E0F22 0%, #250713 55%, #120208 100%);
 }
 
-/* Subtle luxury button styles */
-.btn-gold {
-  background: linear-gradient(135deg, #D4AF37 0%, #E2C263 100%);
-  color: #1D050E;
+.plum-card-bg {
+  background: linear-gradient(145deg, rgba(45, 10, 24, 0.96) 0%, rgba(22, 4, 12, 0.98) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+/* Luxury Gold Border Frame with Scallop Details */
+.gold-frame {
+  position: relative;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+}
+.gold-frame::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Ornate Corner Accents */
+.royal-corner-box {
+  position: relative;
+}
+.royal-corner-box::before,
+.royal-corner-box::after {
+  content: '✦';
+  position: absolute;
+  font-size: 10px;
+  color: var(--color-gold-500);
+  line-height: 1;
+  pointer-events: none;
+}
+.royal-corner-box::before { top: 8px; left: 8px; }
+.royal-corner-box::after { bottom: 8px; right: 8px; }
+
+/* ==========================================================================
+   Royal Buttons & Call-to-Actions
+   ========================================================================== */
+.btn-royal-gold {
+  background: linear-gradient(135deg, #F3D275 0%, #D4AF37 45%, #AA8423 100%);
+  color: #1A050F;
+  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.05em;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.38), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+  position: relative;
+  overflow: hidden;
 }
 
-.btn-gold:hover {
-  background: linear-gradient(135deg, #DFBE4B 0%, #EDD17C 100%);
+.btn-royal-gold::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -60%;
+  width: 220%;
+  height: 220%;
+  background: linear-gradient(60deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
+  transform: rotate(25deg) translateY(-100%);
+  transition: transform 0.8s ease;
+}
+
+.btn-royal-gold:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+  box-shadow: 0 10px 28px rgba(212, 175, 55, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.9);
 }
 
-.btn-gold:active {
+.btn-royal-gold:hover::after {
+  transform: rotate(25deg) translateY(100%);
+}
+
+.btn-royal-gold:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.4);
+}
+
+.btn-royal-plum {
+  background: linear-gradient(135deg, #3A0C1E 0%, #200511 100%);
+  color: #F8F4EC;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(30, 6, 16, 0.15);
+}
+
+.btn-royal-plum:hover {
+  background: linear-gradient(135deg, #4E122B 0%, #2D0819 100%);
+  border-color: rgba(212, 175, 55, 0.8);
+  box-shadow: 0 6px 20px rgba(30, 6, 16, 0.25);
+  color: #FFF;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Micro-LED Ambient Illumination Glow Effects
+   ========================================================================== */
+@keyframes ambient-led-pulsing {
+  0%, 100% {
+    filter: drop-shadow(0 0 16px rgba(255, 185, 45, 0.55)) drop-shadow(0 0 32px rgba(212, 175, 55, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px rgba(255, 200, 70, 0.9)) drop-shadow(0 0 65px rgba(230, 160, 20, 0.65));
+  }
+}
+
+.led-illumination-glow {
+  animation: ambient-led-pulsing 3.5s ease-in-out infinite;
+}
+
+/* Soft Golden Radiance Halo */
+.golden-halo {
+  position: relative;
+}
+.golden-halo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 92%;
+  height: 92%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(245, 190, 60, 0.38) 0%, rgba(212, 175, 55, 0.15) 50%, transparent 75%);
+  filter: blur(30px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Lantern Glow Card on Hero */
+.lantern-glow-card {
+  box-shadow: 0 20px 60px rgba(212, 175, 55, 0.25), 0 10px 30px rgba(30, 6, 16, 0.4);
+}
+
+/* Interactive Night Mode Simulation */
+.night-glow-mode {
+  background-color: #0E0207 !important;
+  color: #F8F4EC !important;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.night-glow-mode .hero-container {
+  background: radial-gradient(circle at 50% 40%, #300A1A 0%, #150209 60%, #080004 100%) !important;
+}
+
+/* ==========================================================================
+   Interactive Hotspot Pins & Rich Floating Tooltips
+   ========================================================================== */
+.hotspot-pin {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFF3D1 0%, #D4AF37 100%);
+  color: #1E0610;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.95);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 20;
+}
+.hotspot-pin::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.75);
+  animation: hotspot-ripple 2.5s infinite;
+}
+@keyframes hotspot-ripple {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.hotspot-pin:hover {
+  transform: scale(1.2);
+}
+
+/* Hotspot Tooltip Popup */
+.hotspot-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  width: 210px;
+  background: rgba(18, 3, 10, 0.96);
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #F8F4EC;
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 30;
+  backdrop-filter: blur(8px);
+}
+.hotspot-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(18, 3, 10, 0.96) transparent transparent transparent;
+}
+.hotspot-pin:hover .hotspot-tooltip,
+.hotspot-pin:focus .hotspot-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   Royal Shagun Voucher Milestone Coupon Cards
+   ========================================================================= */
+.shagun-voucher {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 8px 24px rgba(30, 6, 16, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.shagun-voucher:hover {
+  transform: translateY(-4px);
+  border-color: #D4AF37;
+  box-shadow: 0 16px 36px rgba(212, 175, 55, 0.22);
+}
+
+/* Perforated ticket tear line */
+.ticket-tear-line {
+  position: relative;
+  border-top: 1.5px dashed rgba(212, 175, 55, 0.4);
+  margin: 16px -24px;
+}
+.ticket-tear-line::before,
+.ticket-tear-line::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-ivory-50);
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
+}
+.ticket-tear-line::before { left: -9px; }
+.ticket-tear-line::after { right: -9px; }
+
+/* ==========================================================================
+   Jharokha Arch / Indian Royal Motif Divider
+   ========================================================================= */
+.jharokha-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 18px 0;
+}
+.jharokha-divider::before,
+.jharokha-divider::after {
+  content: '';
+  flex: 1;
+  max-width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.65), transparent);
+}
+
+/* ==========================================================================
+   Floating Sticky Mobile Buy Bar
+   ========================================================================= */
+.mobile-sticky-cta {
+  transform: translateY(110%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mobile-sticky-cta.visible {
   transform: translateY(0);
 }
 
-.btn-plum {
-  background-color: var(--color-plum-800);
-  color: #F8F4EE;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-plum:hover {
-  background-color: var(--color-plum-700);
-  color: #FFF;
-}
-
-/* Micro-LED ambient pulse effect */
-@keyframes warm-lantern-glow {
-  0%, 100% {
-    box-shadow: 0 0 25px rgba(212, 175, 55, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(212, 175, 55, 0.55), inset 0 0 25px rgba(212, 175, 55, 0.35);
-  }
-}
-
-.lantern-glow-card {
-  animation: warm-lantern-glow 4s ease-in-out infinite;
-}
-
-/* Smooth modal transitions */
+/* Modal and Backdrop Blur */
 .modal-backdrop {
-  background-color: rgba(29, 5, 14, 0.65);
-  backdrop-filter: blur(4px);
+  background-color: rgba(18, 3, 10, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+/* Floating Toast Notification */
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(30, 6, 16, 0.95);
+  color: #FDFAF5;
+  border: 1px solid #D4AF37;
+  padding: 12px 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toast-notice.show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #F8F4EE;
+  background: #F9F5EC;
 }
 ::-webkit-scrollbar-thumb {
   background: #D4AF37;
